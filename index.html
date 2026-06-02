@@ -447,16 +447,25 @@ const daysUntil = iso=>{
   return Math.round((t-n)/86400000);
 };
 const stageColor = stage=>{
-  const map={"Em Definição":"var(--muted)","Pendente":"var(--gold)","Em Execução":"var(--yellow)","Aguardando":"var(--ink-soft)","Concluído":"var(--green)","Em Andamento":"var(--yellow)","Pausado":"var(--muted)","Bloqueado":"var(--red)","Longo prazo":"var(--leaf)"};
+  const map={
+    "Fase 1 — Fundação":"var(--muted)",
+    "Fase 2 — Produto":"var(--leaf)",
+    "Fase 3 — Portfólio":"var(--gold)",
+    "Fase 4 — Captação":"var(--yellow)",
+    "Fase 5 — Primeira Venda":"var(--green)",
+    "Fase 6 — Escala":"#6fa8dc",
+    "Em Definição":"var(--muted)","Pendente":"var(--gold)","Em Execução":"var(--yellow)","Aguardando":"var(--ink-soft)","Concluído":"var(--green)","Em Andamento":"var(--yellow)","Pausado":"var(--muted)","Bloqueado":"var(--red)","Longo prazo":"var(--leaf)"
+  };
   return map[stage]||"var(--leaf)";
 };
 
 /* ---------- State ---------- */
 let sbClient, realtimeSub;
 let state = {
-  columns: ["Em Definição","Pendente","Em Execução","Aguardando","Concluído"],
+  columns: ["Fase 1 — Fundação","Fase 2 — Produto","Fase 3 — Portfólio","Fase 4 — Captação","Fase 5 — Primeira Venda","Fase 6 — Escala"],
   companies: [],
   projects: [],
+  seededRoadmap: false,
   meta: { emoji:"🌿", title:"Quadro de Projetos", subtitle:"Meu Espaço de Trabalho" }
 };
 let filters = { search:"", company:"" };
@@ -483,6 +492,7 @@ async function loadFromDB(){
     if(row.id==="columns") state.columns = row.value;
     if(row.id==="companies") state.companies = row.value;
     if(row.id==="meta") state.meta = { ...state.meta, ...row.value };
+    if(row.id==="seeded_roadmap") state.seededRoadmap = true;
   });
 
   // Load projects
@@ -988,31 +998,54 @@ document.addEventListener("keydown",e=>{
   }
 });
 
-/* ---------- Seed default data (runs once on empty board) ---------- */
+/* ---------- Seed roadmap data (runs once, checked via seeded_roadmap flag) ---------- */
 async function seedDefaultData(){
-  state.columns = ["Em Definição","Pendente","Em Execução","Aguardando","Concluído"];
+  // Clear existing projects first
+  for(const p of [...state.projects]) await deleteProject(p.id);
+  state.projects = [];
+
+  state.columns = ["Fase 1 — Fundação","Fase 2 — Produto","Fase 3 — Portfólio","Fase 4 — Captação","Fase 5 — Primeira Venda","Fase 6 — Escala"];
   await saveMeta("columns", state.columns);
 
   const seed = [
-    { title:"Definir nome comercial",                                        stage:"Em Definição", responsible:"" },
-    { title:"Definir título, subtítulo e sub-subtítulo do Hero",             stage:"Em Definição", responsible:"" },
-    { title:"Adquirir imagem de fundo do Hero em HD",                        stage:"Pendente",     responsible:"" },
-    { title:"Reescrever diferenciais (foco no o quê, não no como)",          stage:"Pendente",     responsible:"" },
-    { title:"Produzir conteúdo da linha do tempo pós-contratação",           stage:"Pendente",     responsible:"" },
-    { title:"Avaliar incluir fotos na seção Quem Somos",                     stage:"Pendente",     responsible:"" },
-    { title:"Corrigir Portfólio para âncora na mesma página",                stage:"Pendente",     responsible:"Pedro" },
-    { title:"Validar transferência do site para o cliente no Lovable",       stage:"Em Definição", responsible:"" },
-    { title:"Definir domínio e hospedagem e atualizar FAQ",                  stage:"Em Definição", responsible:"" },
-    { title:"Criar perfil no Google Meu Negócio",                            stage:"Pendente",     responsible:"" },
-    { title:"Definir número de pacotes (2 ou 3)",                            stage:"Em Definição", responsible:"" },
-    { title:"Definir preços de cada pacote",                                 stage:"Em Definição", responsible:"" },
-    { title:"Definir prazos de entrega por pacote (em dias)",                stage:"Em Definição", responsible:"" },
-    { title:"Definir política de refações por pacote",                       stage:"Em Definição", responsible:"" },
-    { title:"Definir política de suporte pós-entrega",                       stage:"Em Definição", responsible:"" },
-    { title:"Definir estrutura de pagamento (Pix, cartão, entrada)",         stage:"Em Definição", responsible:"" },
-    { title:"Produzir sites para portfólio (mínimo 4)",                      stage:"Pendente",     responsible:"" },
-    { title:"Testar variante com fundo escuro nos diferenciais",             stage:"Pendente",     responsible:"Pedro" },
-    { title:"Avaliar link de pagamento direto vs WhatsApp",                  stage:"Em Definição", responsible:"" },
+    // Fase 1 — Fundação
+    { title:"Definir nome comercial do negócio",                                stage:"Fase 1 — Fundação",       responsible:"" },
+    { title:"Escrever proposta de valor central",                                stage:"Fase 1 — Fundação",       responsible:"" },
+    { title:"Definir público-alvo com precisão",                                 stage:"Fase 1 — Fundação",       responsible:"" },
+    { title:"Fechar pacotes (nomes, preços, prazos, refações, suporte)",         stage:"Fase 1 — Fundação",       responsible:"" },
+    { title:"Definir estrutura de pagamento (Pix, cartão, entrada + restante)",  stage:"Fase 1 — Fundação",       responsible:"" },
+    { title:"Documentar o que está incluso em cada pacote",                      stage:"Fase 1 — Fundação",       responsible:"" },
+    // Fase 2 — Produto
+    { title:"Corrigir Portfólio para âncora na mesma página",                    stage:"Fase 2 — Produto",        responsible:"Pedro" },
+    { title:"Definir e escrever Hero (título, subtítulo, sub-subtítulo)",        stage:"Fase 2 — Produto",        responsible:"" },
+    { title:"Adquirir imagem de fundo do Hero em alta resolução",                stage:"Fase 2 — Produto",        responsible:"" },
+    { title:"Reescrever Diferenciais com foco no benefício, não na técnica",     stage:"Fase 2 — Produto",        responsible:"" },
+    { title:"Criar seção Linha do Tempo pós-contratação",                        stage:"Fase 2 — Produto",        responsible:"" },
+    { title:"Revisar FAQ com respostas reais",                                   stage:"Fase 2 — Produto",        responsible:"" },
+    { title:"Testar variante com fundo escuro nos Diferenciais",                 stage:"Fase 2 — Produto",        responsible:"Pedro" },
+    { title:"Definir se inclui foto dos responsáveis no Quem Somos",            stage:"Fase 2 — Produto",        responsible:"" },
+    { title:"Validar transferência do site para o cliente no Lovable",           stage:"Fase 2 — Produto",        responsible:"" },
+    // Fase 3 — Portfólio
+    { title:"Produzir site demo — Salão de beleza",                              stage:"Fase 3 — Portfólio",      responsible:"Pedro" },
+    { title:"Produzir site demo — Consultório",                                  stage:"Fase 3 — Portfólio",      responsible:"Pedro" },
+    { title:"Produzir site demo — Loja local",                                   stage:"Fase 3 — Portfólio",      responsible:"Pedro" },
+    { title:"Produzir site demo — Prestador de serviço",                         stage:"Fase 3 — Portfólio",      responsible:"Pedro" },
+    // Fase 4 — Captação
+    { title:"Criar perfil no Google Meu Negócio",                                stage:"Fase 4 — Captação",       responsible:"" },
+    { title:"Definir canal principal de entrada (WhatsApp)",                     stage:"Fase 4 — Captação",       responsible:"" },
+    { title:"Criar conteúdo de topo de funil para Instagram",                    stage:"Fase 4 — Captação",       responsible:"" },
+    { title:"Avaliar link de pagamento direto vs contato humano",                stage:"Fase 4 — Captação",       responsible:"" },
+    // Fase 5 — Primeira Venda
+    { title:"Abordar rede de contatos de Pedro e Gabriela",                      stage:"Fase 5 — Primeira Venda", responsible:"" },
+    { title:"Fechar primeiro cliente (desconto em troca de depoimento)",         stage:"Fase 5 — Primeira Venda", responsible:"" },
+    { title:"Executar processo completo: briefing → desenvolvimento → entrega",  stage:"Fase 5 — Primeira Venda", responsible:"" },
+    { title:"Documentar aprendizados da primeira entrega",                       stage:"Fase 5 — Primeira Venda", responsible:"" },
+    // Fase 6 — Escala
+    { title:"Criar pacote de manutenção periódica",                              stage:"Fase 6 — Escala",         responsible:"" },
+    { title:"Estruturar parceria com gestores de tráfego pago",                  stage:"Fase 6 — Escala",         responsible:"" },
+    { title:"Avaliar oferta de mentoria/consultoria",                            stage:"Fase 6 — Escala",         responsible:"" },
+    { title:"Introduzir rebranding periódico como serviço recorrente",           stage:"Fase 6 — Escala",         responsible:"" },
+    { title:"Construir base de clientes para venda de alterações avulsas",       stage:"Fase 6 — Escala",         responsible:"" },
   ];
 
   for(const s of seed){
@@ -1025,8 +1058,8 @@ async function seedDefaultData(){
     await saveProject(p);
   }
 
-  state.meta.seeded = true;
-  await saveMeta("meta", state.meta);
+  state.seededRoadmap = true;
+  await saveMeta("seeded_roadmap", true);
 }
 
 /* ============================================================
@@ -1061,7 +1094,7 @@ async function boot(url, key){
   try{
     if(!sbClient) await initSupabase(url, key);
     await loadFromDB();
-    if(!state.meta.seeded && state.projects.length === 0) await seedDefaultData();
+    if(!state.seededRoadmap) await seedDefaultData();
     applyMeta();
     renderDue();
     renderCompanyFilter();
