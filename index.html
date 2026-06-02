@@ -238,6 +238,43 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
   opacity:0;transition:.3s cubic-bezier(.34,1.56,.64,1);pointer-events:none;box-shadow:var(--shadow)}
 .toast.show{transform:none;opacity:1}
 .toast.err{border-color:var(--red);color:var(--red)}
+
+/* ---------- Tabs ---------- */
+.tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:5px;width:fit-content}
+.tab-btn{cursor:pointer;border:none;background:transparent;color:var(--muted);font-family:'Outfit';font-size:13.5px;font-weight:500;padding:8px 20px;border-radius:8px;transition:.16s}
+.tab-btn:hover{color:var(--ink)}
+.tab-btn.active{background:var(--panel2);color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* ---------- Category tag in card ---------- */
+.tag.cat{font-size:10px;padding:2px 8px;border-radius:5px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+
+/* ---------- Card warnings ---------- */
+.card .no-resp{font-size:11px;color:var(--red);margin-top:7px;display:flex;align-items:center;gap:4px;opacity:.9}
+.card .no-date{font-size:11px;color:var(--muted);margin-top:5px;display:flex;align-items:center;gap:4px;opacity:.6}
+
+/* ---------- Roadmap ---------- */
+.roadmap{overflow-x:auto;padding:4px 0 24px}
+.roadmap-track{display:flex;align-items:flex-start;gap:0;min-width:max-content;padding:10px 0}
+.phase-connector{width:34px;height:3px;background:var(--line);flex:none;margin-top:80px;position:relative}
+.phase-connector::after{content:"›";position:absolute;right:-6px;top:-11px;color:var(--muted);font-size:20px;font-weight:700}
+.phase-card-rm{flex:0 0 272px;background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);border-radius:16px;padding:16px 18px;transition:.2s}
+.phase-card-rm.has-progress{border-color:rgba(111,174,122,.4)}
+.ph-name{font-family:'Fraunces';font-size:15px;font-weight:600;margin-bottom:13px;display:flex;align-items:center;gap:8px}
+.ph-dot{width:10px;height:10px;border-radius:50%;flex:none}
+.phase-bar-wrap{background:var(--bg);border-radius:20px;height:7px;margin-bottom:8px;overflow:hidden}
+.phase-bar-fill{height:100%;border-radius:20px;transition:.5s}
+.phase-stats{font-size:12px;color:var(--muted);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.phase-resps{display:flex;gap:5px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.phase-resp-dot{width:23px;height:23px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex:none;border:2px solid var(--bg2)}
+.phase-cards-list{display:flex;flex-direction:column;gap:5px;max-height:320px;overflow-y:auto}
+.phase-item{background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:8px 11px;cursor:pointer;transition:.14s;font-size:12.5px;line-height:1.3;display:flex;align-items:flex-start;gap:8px}
+.phase-item:hover{border-color:var(--leaf)}
+.phase-item.done{opacity:.45}
+.phase-item.done .pit{text-decoration:line-through}
+.phase-item-dot{width:7px;height:7px;border-radius:50%;flex:none;margin-top:4px}
+.phase-empty{color:var(--muted);font-size:12px;text-align:center;padding:16px;font-style:italic}
 </style>
 </head>
 <body>
@@ -293,6 +330,12 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
   </div>
 </header>
 
+<div class="tabs" id="main-tabs">
+  <button class="tab-btn active" data-tab="board">📋 Board</button>
+  <button class="tab-btn" data-tab="roadmap">🗺 Roadmap</button>
+</div>
+
+<div id="tab-board" class="tab-content active">
 <div class="due-row" id="dueRow"></div>
 
 <div class="controls">
@@ -301,9 +344,9 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
     <input type="text" id="search" placeholder="Pesquisar projetos, descrições, objetivos, tarefas…">
   </div>
   <div class="filter-group">
-    <label>Categoria</label>
+    <label>Tags</label>
     <div class="company-filter"><select id="companyFilter"><option value="">Todos</option></select></div>
-    <button class="btn ghost" id="manageCo" title="Editar opções de categoria" style="padding:7px 11px;font-size:12px">✎ Editar</button>
+    <button class="btn ghost" id="manageCo" title="Editar opções de tag" style="padding:7px 11px;font-size:12px">✎ Editar</button>
   </div>
   <span class="clearf" id="clearFilters">limpar</span>
 </div>
@@ -311,6 +354,11 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
 <div class="board" id="board"></div>
 
 <footer>Arraste cards entre etapas · clique em um card para expandir · todos os dados ficam no Supabase · <span id="footer-board-name">Quadro de Projetos</span></footer>
+</div><!-- /tab-board -->
+
+<div id="tab-roadmap" class="tab-content">
+  <div class="roadmap" id="roadmap"></div>
+</div>
 
 </div><!-- /app -->
 
@@ -323,7 +371,7 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
     </div>
     <div class="modal-body">
       <div class="field">
-        <label>Categoria</label>
+        <label>Tags</label>
         <div class="companies-box" id="m-companies">
           <div class="co-add">
             <input type="text" id="co-input" placeholder="+ adicionar / digitar para buscar" autocomplete="off">
@@ -352,6 +400,18 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
           <option value="">— nenhum —</option>
           <option value="Pedro">Pedro</option>
           <option value="Gabriela">Gabriela</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Categoria do Roadmap</label>
+        <select id="m-categoria">
+          <option value="">— nenhuma —</option>
+          <option value="Fundação">Fundação</option>
+          <option value="Produto">Produto</option>
+          <option value="Portfólio">Portfólio</option>
+          <option value="Captação">Captação</option>
+          <option value="Primeira Venda">Primeira Venda</option>
+          <option value="Escala">Escala</option>
         </select>
       </div>
       <div class="field">
@@ -448,13 +508,12 @@ const daysUntil = iso=>{
 };
 const stageColor = stage=>{
   const map={
-    "Fase 1 — Fundação":"var(--muted)",
-    "Fase 2 — Produto":"var(--leaf)",
-    "Fase 3 — Portfólio":"var(--gold)",
-    "Fase 4 — Captação":"var(--yellow)",
-    "Fase 5 — Primeira Venda":"var(--green)",
-    "Fase 6 — Escala":"#6fa8dc",
-    "Em Definição":"var(--muted)","Pendente":"var(--gold)","Em Execução":"var(--yellow)","Aguardando":"var(--ink-soft)","Concluído":"var(--green)","Em Andamento":"var(--yellow)","Pausado":"var(--muted)","Bloqueado":"var(--red)","Longo prazo":"var(--leaf)"
+    "A Fazer":"var(--muted)",
+    "Em Andamento":"var(--yellow)",
+    "Aguardando":"var(--gold)",
+    "Concluído":"var(--green)",
+    "Fase 1 — Fundação":"var(--muted)","Fase 2 — Produto":"var(--leaf)","Fase 3 — Portfólio":"var(--gold)","Fase 4 — Captação":"var(--yellow)","Fase 5 — Primeira Venda":"var(--green)","Fase 6 — Escala":"#6fa8dc",
+    "Em Definição":"var(--muted)","Pendente":"var(--gold)","Em Execução":"var(--yellow)","Pausado":"var(--muted)","Bloqueado":"var(--red)","Longo prazo":"var(--leaf)"
   };
   return map[stage]||"var(--leaf)";
 };
@@ -462,10 +521,10 @@ const stageColor = stage=>{
 /* ---------- State ---------- */
 let sbClient, realtimeSub;
 let state = {
-  columns: ["Fase 1 — Fundação","Fase 2 — Produto","Fase 3 — Portfólio","Fase 4 — Captação","Fase 5 — Primeira Venda","Fase 6 — Escala"],
+  columns: ["A Fazer","Em Andamento","Aguardando","Concluído"],
   companies: [],
   projects: [],
-  seededRoadmap: false,
+  seededV3: false,
   meta: { emoji:"🌿", title:"Quadro de Projetos", subtitle:"Meu Espaço de Trabalho" }
 };
 let filters = { search:"", company:"" };
@@ -492,7 +551,7 @@ async function loadFromDB(){
     if(row.id==="columns") state.columns = row.value;
     if(row.id==="companies") state.companies = row.value;
     if(row.id==="meta") state.meta = { ...state.meta, ...row.value };
-    if(row.id==="seeded_roadmap") state.seededRoadmap = true;
+    if(row.id==="seeded_v3") state.seededV3 = true;
   });
 
   // Load projects
@@ -555,7 +614,7 @@ function setupRealtime(){
     .on("postgres_changes",{ event:"INSERT", schema:"public", table:"projects" }, payload=>{
       const r=payload.new; const p={...r.data, id:r.id, stage:r.stage};
       if(!state.projects.find(x=>x.id===r.id)) state.projects.push(p);
-      renderBoard(); renderDue();
+      renderBoard(); renderDue(); renderRoadmapIfActive();
     })
     .on("postgres_changes",{ event:"UPDATE", schema:"public", table:"projects" }, payload=>{
       const r=payload.new; const idx=state.projects.findIndex(x=>x.id===r.id);
@@ -565,11 +624,11 @@ function setupRealtime(){
       if(editing && editing.id===r.id && !isNew){
         // atualiza modal apenas se não estiver editando ativamente
       }
-      renderBoard(); renderDue();
+      renderBoard(); renderDue(); renderRoadmapIfActive();
     })
     .on("postgres_changes",{ event:"DELETE", schema:"public", table:"projects" }, payload=>{
       state.projects=state.projects.filter(p=>p.id!==payload.old.id);
-      renderBoard(); renderDue();
+      renderBoard(); renderDue(); renderRoadmapIfActive();
     })
     .subscribe(status=>{
       const dot=$("#conn-dot"), lbl=$("#conn-label");
@@ -752,12 +811,20 @@ function cardEl(p){
   const cos=(p.companies||[]).slice(0,2).map(c=>`<span class="tag co">${esc(c)}</span>`).join("");
   const more=(p.companies||[]).length>2?`<span class="tag co">+${p.companies.length-2}</span>`:"";
   const prioHtml=p.priority?`<span class="tag prio ${esc(p.priority)}">${esc(p.priority)}</span>`:"";
+  const catColors={"Fundação":"#a0a8b0","Produto":"#6fae7a","Portfólio":"#d6a85b","Captação":"#d9bf6c","Primeira Venda":"#7fb98a","Escala":"#6fa8dc"};
+  const catC=catColors[p.categoria]||"";
+  const catHtml=p.categoria?`<span class="tag cat" style="background:${catC}22;color:${catC};border:1px solid ${catC}44">${esc(p.categoria)}</span>`:"";
   const respColor=p.responsible==="Pedro"?"#8b5cf6":p.responsible==="Gabriela"?"#ec4899":"";
-  const respHtml=p.responsible?`<div class="resp"><span class="resp-dot" style="background:${respColor}"></span><span class="resp-name">${esc(p.responsible)}</span></div>`:"";
+  const respHtml=p.responsible
+    ?`<div class="resp"><span class="resp-dot" style="background:${respColor}"></span><span class="resp-name">${esc(p.responsible)}</span></div>`
+    :`<div class="no-resp">⚠ Sem responsável</div>`;
+  const dateHtml=dueTxt
+    ?`<div class="due ${dueCls}">${dueTxt}</div>`
+    :`<div class="no-date">📅 Sem prazo</div>`;
   el.innerHTML=`
     <div class="ttl">${esc(p.title)}</div>
-    <div class="meta">${cos}${more}${prioHtml}</div>
-    ${dueTxt?`<div class="due ${dueCls}">${dueTxt}</div>`:""}
+    <div class="meta">${catHtml}${cos}${more}${prioHtml}</div>
+    ${dateHtml}
     ${respHtml}`;
   el.addEventListener("click",e=>{ if(!el.classList.contains("just-dragged")) openModal(p,false); });
   el.addEventListener("dragstart",e=>{ el.classList.add("dragging"); e.dataTransfer.setData("text/plain",p.id); });
@@ -776,7 +843,7 @@ function wireColumn(colEl){
     if(p&&p.stage!==colEl.dataset.col){
       p.stage=colEl.dataset.col;
       await saveProject(p);
-      renderBoard(); renderDue();
+      renderBoard(); renderDue(); renderRoadmapIfActive();
     }
   });
 }
@@ -784,7 +851,7 @@ function wireColumn(colEl){
 /* ---------- Modal ---------- */
 function newProject(stage){
   return { id:"p"+Date.now(), title:"", stage:stage||state.columns[0]||"",
-           companies:[], deadline:"", priority:"", responsible:"", desc:"", objective:"", todos:[] };
+           companies:[], deadline:"", priority:"", responsible:"", categoria:"", desc:"", objective:"", todos:[] };
 }
 
 function openModal(p,brandNew){
@@ -795,6 +862,7 @@ function openModal(p,brandNew){
   $("#m-obj").value=p.objective||"";
   $("#m-priority").value=p.priority||"";
   $("#m-responsible").value=p.responsible||"";
+  $("#m-categoria").value=p.categoria||"";
   $("#m-status").textContent=p.stage||"—";
   $("#m-sdot").style.background=stageColor(p.stage);
   renderCompanies(); renderTodos();
@@ -810,12 +878,13 @@ function closeModal(){
     editing.objective=$("#m-obj").value;
     editing.priority=$("#m-priority").value;
     editing.responsible=$("#m-responsible").value;
+    editing.categoria=$("#m-categoria").value;
     if(isNew&&!state.projects.includes(editing)) state.projects.push(editing);
     saveProject(editing);
   }
   $("#overlay").classList.remove("open");
   editing=null; isNew=false;
-  renderBoard(); renderDue(); renderCompanyFilter();
+  renderBoard(); renderDue(); renderCompanyFilter(); renderRoadmapIfActive();
 }
 
 /* ---------- Companies ---------- */
@@ -889,7 +958,7 @@ $("#addTodo").onclick=()=>{
 };
 
 /* ---------- Live-save modal fields ---------- */
-["m-deadline","m-desc","m-obj","m-title","m-priority","m-responsible"].forEach(id=>{
+["m-deadline","m-desc","m-obj","m-title","m-priority","m-responsible","m-categoria"].forEach(id=>{
   const el=$("#"+id); if(!el)return;
   el.addEventListener("input",()=>{
     if(!editing)return;
@@ -899,9 +968,11 @@ $("#addTodo").onclick=()=>{
     if(id==="m-title")editing.title=$("#m-title").value;
     if(id==="m-priority")editing.priority=$("#m-priority").value;
     if(id==="m-responsible")editing.responsible=$("#m-responsible").value;
+    if(id==="m-categoria")editing.categoria=$("#m-categoria").value;
     if(isNew&&!state.projects.includes(editing)){state.projects.push(editing);isNew=false;}
     scheduleSave(editing);
     if(id==="m-deadline")renderDue();
+    renderRoadmapIfActive();
   });
 });
 
@@ -998,68 +1069,165 @@ document.addEventListener("keydown",e=>{
   }
 });
 
-/* ---------- Seed roadmap data (runs once, checked via seeded_roadmap flag) ---------- */
+/* ---------- Roadmap ---------- */
+function renderRoadmapIfActive(){
+  const el=document.getElementById("tab-roadmap");
+  if(el&&el.classList.contains("active")) renderRoadmap();
+}
+
+function renderRoadmap(){
+  const container=$("#roadmap"); if(!container)return;
+  const phases=["Fundação","Produto","Portfólio","Captação","Primeira Venda","Escala"];
+  const phaseColors={"Fundação":"#a0a8b0","Produto":"#6fae7a","Portfólio":"#d6a85b","Captação":"#d9bf6c","Primeira Venda":"#7fb98a","Escala":"#6fa8dc"};
+
+  let html='<div class="roadmap-track">';
+  phases.forEach((phase,idx)=>{
+    const cards=state.projects.filter(p=>p.categoria===phase);
+    const done=cards.filter(p=>p.stage==="Concluído").length;
+    const total=cards.length;
+    const pct=total>0?Math.round(done/total*100):0;
+    const color=phaseColors[phase];
+    const hasProgress=done>0;
+
+    const resps=[...new Set(cards.filter(p=>p.responsible).map(p=>p.responsible))];
+    const respHtml=resps.map(r=>{
+      const rc=r==="Pedro"?"#8b5cf6":r==="Gabriela"?"#ec4899":"var(--muted)";
+      return `<div class="phase-resp-dot" style="background:${rc}" title="${esc(r)}">${esc(r[0])}</div>`;
+    }).join("");
+
+    const itemsHtml=cards.length>0
+      ?cards.map(p=>{
+          const stageDot=p.stage==="Concluído"?"#7fb98a":p.stage==="Em Andamento"?"#d9bf6c":p.stage==="Aguardando"?"#d6a85b":"#7d8f85";
+          return `<div class="phase-item ${p.stage==="Concluído"?"done":""}" data-id="${esc(p.id)}"><span class="phase-item-dot" style="background:${stageDot}"></span><span class="pit">${esc(p.title)}</span></div>`;
+        }).join("")
+      :`<div class="phase-empty">Nenhum card nesta fase</div>`;
+
+    html+=`<div class="phase-card-rm ${hasProgress?"has-progress":""}">
+      <div class="ph-name"><span class="ph-dot" style="background:${color}"></span>${esc(phase)}</div>
+      <div class="phase-bar-wrap"><div class="phase-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+      <div class="phase-stats"><span>${done}/${total} concluído${done===1?"":"s"}</span><span style="font-weight:600;color:${pct===100?"var(--green)":pct>0?"var(--leaf)":"var(--muted)"}">${pct}%</span></div>
+      ${resps.length>0?`<div class="phase-resps">${respHtml}</div>`:""}
+      <div class="phase-cards-list">${itemsHtml}</div>
+    </div>`;
+    if(idx<phases.length-1) html+=`<div class="phase-connector"></div>`;
+  });
+  html+='</div>';
+  container.innerHTML=html;
+
+  container.querySelectorAll(".phase-item[data-id]").forEach(el=>{
+    el.addEventListener("click",()=>{
+      const p=state.projects.find(x=>x.id===el.dataset.id);
+      if(p) openModal(p,false);
+    });
+  });
+}
+
+/* ---------- Tab switching ---------- */
+document.querySelectorAll(".tab-btn").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(c=>c.classList.remove("active"));
+    btn.classList.add("active");
+    const tabEl=document.getElementById("tab-"+btn.dataset.tab);
+    if(tabEl) tabEl.classList.add("active");
+    if(btn.dataset.tab==="roadmap") renderRoadmap();
+  });
+});
+
+/* ---------- Seed v3 data (runs once, checked via seeded_v3 flag) ---------- */
 async function seedDefaultData(){
-  // Clear existing projects first
   for(const p of [...state.projects]) await deleteProject(p.id);
-  state.projects = [];
+  state.projects=[];
 
-  state.columns = ["Fase 1 — Fundação","Fase 2 — Produto","Fase 3 — Portfólio","Fase 4 — Captação","Fase 5 — Primeira Venda","Fase 6 — Escala"];
-  await saveMeta("columns", state.columns);
+  state.columns=["A Fazer","Em Andamento","Aguardando","Concluído"];
+  await saveMeta("columns",state.columns);
 
-  const seed = [
-    // Fase 1 — Fundação
-    { title:"Definir nome comercial do negócio",                                stage:"Fase 1 — Fundação",       responsible:"" },
-    { title:"Escrever proposta de valor central",                                stage:"Fase 1 — Fundação",       responsible:"" },
-    { title:"Definir público-alvo com precisão",                                 stage:"Fase 1 — Fundação",       responsible:"" },
-    { title:"Fechar pacotes (nomes, preços, prazos, refações, suporte)",         stage:"Fase 1 — Fundação",       responsible:"" },
-    { title:"Definir estrutura de pagamento (Pix, cartão, entrada + restante)",  stage:"Fase 1 — Fundação",       responsible:"" },
-    { title:"Documentar o que está incluso em cada pacote",                      stage:"Fase 1 — Fundação",       responsible:"" },
-    // Fase 2 — Produto
-    { title:"Corrigir Portfólio para âncora na mesma página",                    stage:"Fase 2 — Produto",        responsible:"Pedro" },
-    { title:"Definir e escrever Hero (título, subtítulo, sub-subtítulo)",        stage:"Fase 2 — Produto",        responsible:"" },
-    { title:"Adquirir imagem de fundo do Hero em alta resolução",                stage:"Fase 2 — Produto",        responsible:"" },
-    { title:"Reescrever Diferenciais com foco no benefício, não na técnica",     stage:"Fase 2 — Produto",        responsible:"" },
-    { title:"Criar seção Linha do Tempo pós-contratação",                        stage:"Fase 2 — Produto",        responsible:"" },
-    { title:"Revisar FAQ com respostas reais",                                   stage:"Fase 2 — Produto",        responsible:"" },
-    { title:"Testar variante com fundo escuro nos Diferenciais",                 stage:"Fase 2 — Produto",        responsible:"Pedro" },
-    { title:"Definir se inclui foto dos responsáveis no Quem Somos",            stage:"Fase 2 — Produto",        responsible:"" },
-    { title:"Validar transferência do site para o cliente no Lovable",           stage:"Fase 2 — Produto",        responsible:"" },
-    // Fase 3 — Portfólio
-    { title:"Produzir site demo — Salão de beleza",                              stage:"Fase 3 — Portfólio",      responsible:"Pedro" },
-    { title:"Produzir site demo — Consultório",                                  stage:"Fase 3 — Portfólio",      responsible:"Pedro" },
-    { title:"Produzir site demo — Loja local",                                   stage:"Fase 3 — Portfólio",      responsible:"Pedro" },
-    { title:"Produzir site demo — Prestador de serviço",                         stage:"Fase 3 — Portfólio",      responsible:"Pedro" },
-    // Fase 4 — Captação
-    { title:"Criar perfil no Google Meu Negócio",                                stage:"Fase 4 — Captação",       responsible:"" },
-    { title:"Definir canal principal de entrada (WhatsApp)",                     stage:"Fase 4 — Captação",       responsible:"" },
-    { title:"Criar conteúdo de topo de funil para Instagram",                    stage:"Fase 4 — Captação",       responsible:"" },
-    { title:"Avaliar link de pagamento direto vs contato humano",                stage:"Fase 4 — Captação",       responsible:"" },
-    // Fase 5 — Primeira Venda
-    { title:"Abordar rede de contatos de Pedro e Gabriela",                      stage:"Fase 5 — Primeira Venda", responsible:"" },
-    { title:"Fechar primeiro cliente (desconto em troca de depoimento)",         stage:"Fase 5 — Primeira Venda", responsible:"" },
-    { title:"Executar processo completo: briefing → desenvolvimento → entrega",  stage:"Fase 5 — Primeira Venda", responsible:"" },
-    { title:"Documentar aprendizados da primeira entrega",                       stage:"Fase 5 — Primeira Venda", responsible:"" },
-    // Fase 6 — Escala
-    { title:"Criar pacote de manutenção periódica",                              stage:"Fase 6 — Escala",         responsible:"" },
-    { title:"Estruturar parceria com gestores de tráfego pago",                  stage:"Fase 6 — Escala",         responsible:"" },
-    { title:"Avaliar oferta de mentoria/consultoria",                            stage:"Fase 6 — Escala",         responsible:"" },
-    { title:"Introduzir rebranding periódico como serviço recorrente",           stage:"Fase 6 — Escala",         responsible:"" },
-    { title:"Construir base de clientes para venda de alterações avulsas",       stage:"Fase 6 — Escala",         responsible:"" },
+  const T=(t,d=false)=>({t,d});
+  const seed=[
+    // Fundação
+    {title:"Definir nome comercial do negócio",categoria:"Fundação",responsible:"",
+     todos:[T("Pesquisar nomes disponíveis"),T("Verificar disponibilidade de domínio"),T("Decidir nome final")]},
+    {title:"Escrever proposta de valor central",categoria:"Fundação",responsible:"",
+     todos:[T("Identificar a dor principal do cliente"),T("Escrever frase de valor em 1 linha"),T("Validar com 3 pessoas externas")]},
+    {title:"Definir público-alvo com precisão",categoria:"Fundação",responsible:"",
+     todos:[T("Descrever perfil demográfico"),T("Descrever perfil comportamental"),T("Listar objeções comuns")]},
+    {title:"Fechar pacotes (nomes, preços, prazos, refações, suporte)",categoria:"Fundação",responsible:"",
+     todos:[T("Definir nomes dos pacotes"),T("Definir preços de cada pacote"),T("Definir prazos de entrega por pacote"),T("Definir política de refações"),T("Definir suporte pós-entrega")]},
+    {title:"Definir estrutura de pagamento (Pix, cartão, entrada + restante)",categoria:"Fundação",responsible:"",
+     todos:[T("Definir % de entrada exigida"),T("Definir formas de pagamento aceitas"),T("Criar descrição para a proposta")]},
+    {title:"Documentar o que está incluso em cada pacote",categoria:"Fundação",responsible:"",
+     todos:[T("Listar entregáveis do pacote básico"),T("Listar entregáveis do pacote intermediário"),T("Listar entregáveis do pacote premium")]},
+    // Produto
+    {title:"Corrigir Portfólio para âncora na mesma página",categoria:"Produto",responsible:"Pedro",
+     todos:[T("Identificar o link incorreto"),T("Corrigir âncora no código"),T("Testar em mobile e desktop")]},
+    {title:"Definir e escrever Hero (título, subtítulo, sub-subtítulo)",categoria:"Produto",responsible:"",
+     todos:[T("Rascunhar 3 versões de título"),T("Escolher a versão final"),T("Escrever subtítulo"),T("Escrever sub-subtítulo")]},
+    {title:"Adquirir imagem de fundo do Hero em alta resolução",categoria:"Produto",responsible:"",
+     todos:[T("Pesquisar em banco de imagens gratuito"),T("Selecionar candidatas"),T("Escolher imagem final"),T("Otimizar para web")]},
+    {title:"Reescrever Diferenciais com foco no benefício, não na técnica",categoria:"Produto",responsible:"",
+     todos:[T("Listar diferenciais atuais"),T("Reescrever cada um focando no benefício"),T("Revisar com olhar do cliente")]},
+    {title:"Criar seção Linha do Tempo pós-contratação",categoria:"Produto",responsible:"",
+     todos:[T("Listar etapas do processo de entrega"),T("Definir prazos estimados por etapa"),T("Criar visual da linha do tempo")]},
+    {title:"Revisar FAQ com respostas reais",categoria:"Produto",responsible:"",
+     todos:[T("Coletar perguntas frequentes reais"),T("Escrever respostas honestas"),T("Adicionar seção de garantia ou política")]},
+    {title:"Testar variante com fundo escuro nos Diferenciais",categoria:"Produto",responsible:"Pedro",
+     todos:[T("Criar variante no Lovable"),T("Comparar visualmente com versão atual"),T("Decidir qual manter")]},
+    {title:"Definir se inclui foto dos responsáveis no Quem Somos",categoria:"Produto",responsible:"",
+     todos:[T("Avaliar impacto de humanizar a página"),T("Tirar fotos se decidir incluir"),T("Ajustar texto do Quem Somos")]},
+    {title:"Validar transferência do site para o cliente no Lovable",categoria:"Produto",responsible:"",
+     todos:[T("Testar fluxo de transferência"),T("Documentar o processo"),T("Confirmar que o cliente consegue editar")]},
+    // Portfólio
+    {title:"Produzir site demo — Salão de beleza",categoria:"Portfólio",responsible:"Pedro",
+     todos:[T("Definir estrutura de páginas"),T("Criar conteúdo fictício"),T("Desenvolver no Lovable"),T("Revisar em mobile")]},
+    {title:"Produzir site demo — Consultório",categoria:"Portfólio",responsible:"Pedro",
+     todos:[T("Definir estrutura de páginas"),T("Criar conteúdo fictício"),T("Desenvolver no Lovable"),T("Revisar em mobile")]},
+    {title:"Produzir site demo — Loja local",categoria:"Portfólio",responsible:"Pedro",
+     todos:[T("Definir estrutura de páginas"),T("Criar conteúdo fictício"),T("Desenvolver no Lovable"),T("Revisar em mobile")]},
+    {title:"Produzir site demo — Prestador de serviço",categoria:"Portfólio",responsible:"Pedro",
+     todos:[T("Definir estrutura de páginas"),T("Criar conteúdo fictício"),T("Desenvolver no Lovable"),T("Revisar em mobile")]},
+    // Captação
+    {title:"Criar perfil no Google Meu Negócio",categoria:"Captação",responsible:"",
+     todos:[T("Criar conta no Google Meu Negócio"),T("Preencher todas as informações"),T("Adicionar fotos de capa e logo"),T("Publicar e verificar perfil")]},
+    {title:"Definir canal principal de entrada (WhatsApp)",categoria:"Captação",responsible:"",
+     todos:[T("Criar número dedicado ao negócio"),T("Configurar mensagem automática de boas-vindas"),T("Definir script de atendimento inicial")]},
+    {title:"Criar conteúdo de topo de funil para Instagram",categoria:"Captação",responsible:"",
+     todos:[T("Definir 5 pautas de conteúdo"),T("Criar artes para os posts"),T("Publicar e monitorar alcance")]},
+    {title:"Avaliar link de pagamento direto vs contato humano",categoria:"Captação",responsible:"",
+     todos:[T("Testar link de pagamento automático"),T("Avaliar conversão vs contato humano"),T("Implementar decisão final")]},
+    // Primeira Venda
+    {title:"Abordar rede de contatos de Pedro e Gabriela",categoria:"Primeira Venda",responsible:"",
+     todos:[T("Listar 10 contatos potenciais"),T("Enviar mensagem personalizada para cada um"),T("Fazer follow-up após 3 dias")]},
+    {title:"Fechar primeiro cliente (desconto em troca de depoimento)",categoria:"Primeira Venda",responsible:"",
+     todos:[T("Apresentar proposta com desconto"),T("Negociar condições"),T("Formalizar acordo por escrito"),T("Iniciar projeto")]},
+    {title:"Executar processo completo: briefing → desenvolvimento → entrega",categoria:"Primeira Venda",responsible:"",
+     todos:[T("Realizar briefing com o cliente"),T("Desenvolver o site"),T("Apresentar versão inicial"),T("Aplicar ajustes solicitados"),T("Realizar entrega formal")]},
+    {title:"Documentar aprendizados da primeira entrega",categoria:"Primeira Venda",responsible:"",
+     todos:[T("Anotar o que funcionou bem"),T("Anotar o que precisa melhorar"),T("Atualizar processo interno")]},
+    // Escala
+    {title:"Criar pacote de manutenção periódica",categoria:"Escala",responsible:"",
+     todos:[T("Definir o que inclui manutenção mensal"),T("Definir preço mensal"),T("Criar proposta de manutenção")]},
+    {title:"Estruturar parceria com gestores de tráfego pago",categoria:"Escala",responsible:"",
+     todos:[T("Identificar gestores parceiros potenciais"),T("Apresentar proposta de parceria"),T("Formalizar acordo")]},
+    {title:"Avaliar oferta de mentoria/consultoria",categoria:"Escala",responsible:"",
+     todos:[T("Definir público-alvo da mentoria"),T("Criar estrutura de sessões"),T("Precificar oferta")]},
+    {title:"Introduzir rebranding periódico como serviço recorrente",categoria:"Escala",responsible:"",
+     todos:[T("Criar pacote de rebranding periódico"),T("Definir periodicidade sugerida"),T("Precificar o serviço")]},
+    {title:"Construir base de clientes para venda de alterações avulsas",categoria:"Escala",responsible:"",
+     todos:[T("Criar lista de clientes ativos"),T("Criar oferta de alterações avulsas"),T("Enviar comunicado para base de clientes")]},
   ];
 
   for(const s of seed){
-    const p = {
-      id: "seed_" + Date.now() + "_" + Math.random().toString(36).slice(2,7),
-      title: s.title, stage: s.stage, responsible: s.responsible,
-      companies:[], deadline:"", priority:"", desc:"", objective:"", todos:[]
+    const p={
+      id:"seed_"+Date.now()+"_"+Math.random().toString(36).slice(2,7),
+      title:s.title, stage:"A Fazer", responsible:s.responsible, categoria:s.categoria,
+      companies:[], deadline:"", priority:"", desc:"", objective:"", todos:s.todos||[]
     };
     state.projects.push(p);
     await saveProject(p);
   }
 
-  state.seededRoadmap = true;
-  await saveMeta("seeded_roadmap", true);
+  state.seededV3=true;
+  await saveMeta("seeded_v3",true);
 }
 
 /* ============================================================
@@ -1094,7 +1262,7 @@ async function boot(url, key){
   try{
     if(!sbClient) await initSupabase(url, key);
     await loadFromDB();
-    if(!state.seededRoadmap) await seedDefaultData();
+    if(!state.seededV3) await seedDefaultData();
     applyMeta();
     renderDue();
     renderCompanyFilter();
