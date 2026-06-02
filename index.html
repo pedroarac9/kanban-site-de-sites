@@ -26,7 +26,27 @@
   --yellow:#d9bf6c;
   --green:#7fb98a;
   --shadow:0 18px 40px -18px rgba(0,0,0,.7);
+  --pad:clamp(16px,3vw,46px);
 }
+/* ---------- Light theme ---------- */
+[data-theme="light"]{
+  --bg:#f4f7f4;
+  --bg2:#edf2ed;
+  --panel:#ffffff;
+  --panel2:#f0f4f0;
+  --line:#d4e0d4;
+  --ink:#1a2b1f;
+  --ink-soft:#4a6b52;
+  --muted:#6b8872;
+  --shadow:0 4px 20px rgba(0,0,0,.08);
+}
+[data-theme="light"] body{
+  background:radial-gradient(1200px 600px at 80% -10%,rgba(63,122,82,.06),transparent 60%),
+    radial-gradient(900px 500px at -10% 110%,rgba(214,168,91,.04),transparent 55%),
+    var(--bg);
+}
+[data-theme="light"] .field input[type=date]{color-scheme:light}
+[data-theme="light"] #loading-screen,[data-theme="light"] #setup-screen{background:var(--bg)}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
 body{
@@ -38,7 +58,7 @@ body{
   font-family:'Outfit',sans-serif;
   font-weight:400;
   -webkit-font-smoothing:antialiased;
-  padding:28px clamp(16px,3vw,46px) 80px;
+  padding:28px var(--pad) 80px;
 }
 ::-webkit-scrollbar{height:11px;width:11px}
 ::-webkit-scrollbar-thumb{background:var(--line);border-radius:20px}
@@ -239,6 +259,21 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
 .toast.show{transform:none;opacity:1}
 .toast.err{border-color:var(--red);color:var(--red)}
 
+/* ---------- Launch progress bar ---------- */
+#launch-bar{position:sticky;top:0;z-index:40;background:var(--panel);border:1px solid var(--line);
+  border-radius:0;border-left:none;border-right:none;
+  padding:10px var(--pad);
+  margin-left:calc(-1*var(--pad));margin-right:calc(-1*var(--pad));margin-bottom:20px;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  box-shadow:0 4px 16px rgba(0,0,0,.2)}
+.lb-title{font-family:'Fraunces';font-size:14px;font-weight:600;background:transparent;border:none;color:var(--ink);outline:none;border-radius:6px;padding:2px 5px;min-width:100px;max-width:260px;cursor:text}
+.lb-title:hover{background:var(--bg2)}
+.lb-title:focus{background:var(--bg2);box-shadow:0 0 0 1px var(--leaf)}
+.lb-bar-wrap{flex:1;min-width:140px;background:var(--bg);border-radius:20px;height:7px;overflow:hidden}
+.lb-bar-fill{height:100%;border-radius:20px;background:var(--leaf);transition:.5s}
+.lb-pct{font-family:'Fraunces';font-size:17px;font-weight:700;color:var(--leaf);white-space:nowrap}
+.lb-count{font-size:12px;color:var(--muted);white-space:nowrap}
+
 /* ---------- Tabs ---------- */
 .tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:5px;width:fit-content}
 .tab-btn{cursor:pointer;border:none;background:transparent;color:var(--muted);font-family:'Outfit';font-size:13.5px;font-weight:500;padding:8px 20px;border-radius:8px;transition:.16s}
@@ -275,6 +310,11 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
 .phase-item.done .pit{text-decoration:line-through}
 .phase-item-dot{width:7px;height:7px;border-radius:50%;flex:none;margin-top:4px}
 .phase-empty{color:var(--muted);font-size:12px;text-align:center;padding:16px;font-style:italic}
+
+/* ---------- Phase name inline edit ---------- */
+.ph-name-input{font-family:'Fraunces';font-size:15px;font-weight:600;background:transparent;border:none;color:var(--ink);outline:none;border-radius:6px;padding:2px 5px;cursor:text;min-width:0;flex:1}
+.ph-name-input:hover{background:var(--bg2)}
+.ph-name-input:focus{background:var(--bg2);box-shadow:0 0 0 1px var(--leaf)}
 </style>
 </head>
 <body>
@@ -326,6 +366,7 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
     <span class="conn-dot" id="conn-dot"></span>
     <span class="conn-label" id="conn-label">conectando…</span>
 
+    <button class="btn ghost" id="themeToggle" style="padding:7px 10px;font-size:17px" title="Alternar tema">☀️</button>
     <button class="btn primary" id="newProjBtn">＋ Novo projeto</button>
   </div>
 </header>
@@ -334,6 +375,8 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
   <button class="tab-btn active" data-tab="board">📋 Board</button>
   <button class="tab-btn" data-tab="roadmap">🗺 Roadmap</button>
 </div>
+
+<div id="launch-bar"><!-- populated by JS --></div>
 
 <div id="tab-board" class="tab-content active">
 <div class="due-row" id="dueRow"></div>
@@ -404,15 +447,7 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
       </div>
       <div class="field">
         <label>Categoria do Roadmap</label>
-        <select id="m-categoria">
-          <option value="">— nenhuma —</option>
-          <option value="Fundação">Fundação</option>
-          <option value="Produto">Produto</option>
-          <option value="Portfólio">Portfólio</option>
-          <option value="Captação">Captação</option>
-          <option value="Primeira Venda">Primeira Venda</option>
-          <option value="Escala">Escala</option>
-        </select>
+        <select id="m-categoria"><option value="">— nenhuma —</option></select>
       </div>
       <div class="field">
         <label>Status (espelha a etapa)</label>
@@ -506,6 +541,12 @@ const daysUntil = iso=>{
   const t=new Date(iso+"T00:00:00"), n=new Date(); n.setHours(0,0,0,0);
   return Math.round((t-n)/86400000);
 };
+const PHASE_PALETTE=["#a0a8b0","#6fae7a","#d6a85b","#d9bf6c","#e8916b","#7fb98a","#6fa8dc"];
+function getCatColor(cat){
+  const idx=state.roadmapPhases.indexOf(cat);
+  return idx>=0?PHASE_PALETTE[idx%PHASE_PALETTE.length]:"#a0a8b0";
+}
+
 const stageColor = stage=>{
   const map={
     "A Fazer":"var(--muted)",
@@ -525,7 +566,8 @@ let state = {
   companies: [],
   projects: [],
   seededV3: false,
-  meta: { emoji:"🌿", title:"Quadro de Projetos", subtitle:"Meu Espaço de Trabalho" }
+  roadmapPhases: ["Fundação","Produto","Portfólio","Captação","Lançamento","Primeira Venda","Escala"],
+  meta: { emoji:"🌿", title:"Quadro de Projetos", subtitle:"Meu Espaço de Trabalho", launchBarTitle:"Progresso até o lançamento" }
 };
 let filters = { search:"", company:"" };
 let editing=null, isNew=false;
@@ -552,6 +594,7 @@ async function loadFromDB(){
     if(row.id==="companies") state.companies = row.value;
     if(row.id==="meta") state.meta = { ...state.meta, ...row.value };
     if(row.id==="seeded_v3") state.seededV3 = true;
+    if(row.id==="roadmap_phases") state.roadmapPhases = row.value;
   });
 
   // Load projects
@@ -606,10 +649,8 @@ function setupRealtime(){
       const { id, value } = payload.new||{};
       if(id==="columns"){ state.columns=value; renderBoard(); }
       if(id==="companies"){ state.companies=value; renderCompanyFilter(); renderBoard(); }
-      if(id==="meta"){
-        state.meta={...state.meta,...value};
-        applyMeta();
-      }
+      if(id==="meta"){ state.meta={...state.meta,...value}; applyMeta(); renderLaunchBar(); }
+      if(id==="roadmap_phases"){ state.roadmapPhases=value; renderRoadmapIfActive(); renderBoard(); renderLaunchBar(); }
     })
     .on("postgres_changes",{ event:"INSERT", schema:"public", table:"projects" }, payload=>{
       const r=payload.new; const p={...r.data, id:r.id, stage:r.stage};
@@ -686,35 +727,47 @@ function wireHeaderEdits(){
 }
 
 /* ---------- Due-date banner ---------- */
+function dueBlock(p, labelTxt, accentColor, deco){
+  const du=daysUntil(p.deadline);
+  const alarm=du!==null&&du<=3;
+  const when=du<0?`${Math.abs(du)} dia${Math.abs(du)!==1?"s":""} de atraso`:du===0?"vence hoje":du===1?"vence amanhã":`em ${du} dias`;
+  return `<div class="due-card ${alarm?"alarm":""}">
+    <span class="pill">${when}</span>
+    <div class="label" style="color:${accentColor}">${labelTxt}</div>
+    <div class="big">${fmtDate(p.deadline)}</div>
+    <div class="sub" style="color:${accentColor}">${esc(p.title)}</div>
+    <div class="leaf-deco">${deco}</div>
+  </div>`;
+}
+function emptyDueBlock(labelTxt, accentColor, deco){
+  return `<div class="due-card">
+    <div class="label" style="color:${accentColor}">${labelTxt}</div>
+    <div class="big" style="font-size:20px">Sem prazo definido</div>
+    <div class="sub" style="color:${accentColor}">Nenhum card com prazo</div>
+    <div class="leaf-deco">${deco}</div>
+  </div>`;
+}
 function renderDue(){
   const row=$("#dueRow"); if(!row)return;
-  const withDates=state.projects
-    .filter(p=>p.deadline && p.stage!=="Concluído")
+  const active=state.projects.filter(p=>p.deadline&&p.stage!=="Concluído")
     .sort((a,b)=>a.deadline.localeCompare(b.deadline));
-  const next=withDates[0];
-  let html="";
-  if(next){
-    const du=daysUntil(next.deadline);
-    const alarm = du!==null && du<=3;
-    const when = du<0?`${Math.abs(du)} dia${Math.abs(du)!==1?"s":""} de atraso`
-               : du===0?"vence hoje":du===1?"vence amanhã":`em ${du} dias`;
-    html+=`<div class="due-card ${alarm?"alarm":""}">
-      <span class="pill">${when}</span>
-      <div class="label">⏱ Próximo prazo</div>
-      <div class="big">${fmtDate(next.deadline)}</div>
-      <div class="sub">${esc(next.title)}</div>
-      <div class="leaf-deco">🌿</div>
-    </div>`;
-  } else {
-    html+=`<div class="due-card"><div class="label">⏱ Próximo prazo</div><div class="big">Nenhum prazo definido</div><div class="sub">Adicione um prazo a um projeto para vê-lo aqui</div><div class="leaf-deco">🌿</div></div>`;
-  }
-  const active=state.projects.filter(p=>p.stage!=="Concluído").length;
-  html+=`<div class="due-card">
-    <div class="label">📊 Visão geral</div>
-    <div class="big">${active} ativo${active===1?"":"s"}</div>
-    <div class="sub">${state.projects.length} total · ${state.columns.length} etapa${state.columns.length===1?"":"s"}</div>
-    <div class="leaf-deco">📌</div>
-  </div>`;
+  const next=active[0];
+  let html=next
+    ?dueBlock(next,"⏱ Próximo prazo","var(--leaf)","🌿")
+    :`<div class="due-card"><div class="label">⏱ Próximo prazo</div><div class="big">Nenhum prazo definido</div><div class="sub">Adicione um prazo a um projeto</div><div class="leaf-deco">🌿</div></div>`;
+
+  const pedroNext=state.projects.filter(p=>p.responsible==="Pedro"&&p.deadline&&p.stage!=="Concluído")
+    .sort((a,b)=>a.deadline.localeCompare(b.deadline))[0];
+  html+=pedroNext
+    ?dueBlock(pedroNext,"👤 Próximo — Pedro","#8b5cf6","🟣")
+    :emptyDueBlock("👤 Próximo — Pedro","#8b5cf6","🟣");
+
+  const gabiNext=state.projects.filter(p=>p.responsible==="Gabriela"&&p.deadline&&p.stage!=="Concluído")
+    .sort((a,b)=>a.deadline.localeCompare(b.deadline))[0];
+  html+=gabiNext
+    ?dueBlock(gabiNext,"👤 Próximo — Gabriela","#ec4899","🌸")
+    :emptyDueBlock("👤 Próximo — Gabriela","#ec4899","🌸");
+
   row.innerHTML=html;
 }
 
@@ -811,8 +864,7 @@ function cardEl(p){
   const cos=(p.companies||[]).slice(0,2).map(c=>`<span class="tag co">${esc(c)}</span>`).join("");
   const more=(p.companies||[]).length>2?`<span class="tag co">+${p.companies.length-2}</span>`:"";
   const prioHtml=p.priority?`<span class="tag prio ${esc(p.priority)}">${esc(p.priority)}</span>`:"";
-  const catColors={"Fundação":"#a0a8b0","Produto":"#6fae7a","Portfólio":"#d6a85b","Captação":"#d9bf6c","Primeira Venda":"#7fb98a","Escala":"#6fa8dc"};
-  const catC=catColors[p.categoria]||"";
+  const catC=p.categoria?getCatColor(p.categoria):"";
   const catHtml=p.categoria?`<span class="tag cat" style="background:${catC}22;color:${catC};border:1px solid ${catC}44">${esc(p.categoria)}</span>`:"";
   const respColor=p.responsible==="Pedro"?"#8b5cf6":p.responsible==="Gabriela"?"#ec4899":"";
   const respHtml=p.responsible
@@ -862,7 +914,10 @@ function openModal(p,brandNew){
   $("#m-obj").value=p.objective||"";
   $("#m-priority").value=p.priority||"";
   $("#m-responsible").value=p.responsible||"";
-  $("#m-categoria").value=p.categoria||"";
+  const catSel=$("#m-categoria");
+  catSel.innerHTML='<option value="">— nenhuma —</option>'+
+    state.roadmapPhases.map(ph=>`<option value="${esc(ph)}">${esc(ph)}</option>`).join("");
+  catSel.value=p.categoria||"";
   $("#m-status").textContent=p.stage||"—";
   $("#m-sdot").style.background=stageColor(p.stage);
   renderCompanies(); renderTodos();
@@ -1069,24 +1124,46 @@ document.addEventListener("keydown",e=>{
   }
 });
 
+/* ---------- Launch progress bar ---------- */
+function renderLaunchBar(){
+  const bar=document.getElementById("launch-bar"); if(!bar)return;
+  const title=state.meta.launchBarTitle||"Progresso até o lançamento";
+  const launchName=state.roadmapPhases[4]||"Lançamento";
+  const lCards=state.projects.filter(p=>p.categoria===launchName);
+  const done=lCards.filter(p=>p.stage==="Concluído").length;
+  const total=lCards.length;
+  const pct=total>0?Math.round(done/total*100):0;
+  const countTxt=total===0
+    ?`<span class="lb-count" style="font-style:italic">Nenhuma tarefa de lançamento definida</span>`
+    :`<div class="lb-bar-wrap"><div class="lb-bar-fill" style="width:${pct}%"></div></div>
+      <span class="lb-count">${done} de ${total} tarefa${total===1?"":"s"} concluída${done===1?"":"s"}</span>
+      <span class="lb-pct" style="color:${pct===100?"var(--green)":"var(--leaf)"}">${pct}%</span>`;
+  bar.innerHTML=`<input class="lb-title" id="lb-title-in" value="${esc(title)}" placeholder="Título…">${countTxt}`;
+  const inp=document.getElementById("lb-title-in");
+  if(inp){
+    inp.addEventListener("change",()=>{ state.meta.launchBarTitle=inp.value.trim()||"Progresso até o lançamento"; saveMeta("meta",state.meta); });
+    inp.addEventListener("keydown",e=>{ if(e.key==="Enter")inp.blur(); });
+  }
+}
+
 /* ---------- Roadmap ---------- */
 function renderRoadmapIfActive(){
+  renderLaunchBar();
   const el=document.getElementById("tab-roadmap");
   if(el&&el.classList.contains("active")) renderRoadmap();
 }
 
 function renderRoadmap(){
   const container=$("#roadmap"); if(!container)return;
-  const phases=["Fundação","Produto","Portfólio","Captação","Primeira Venda","Escala"];
-  const phaseColors={"Fundação":"#a0a8b0","Produto":"#6fae7a","Portfólio":"#d6a85b","Captação":"#d9bf6c","Primeira Venda":"#7fb98a","Escala":"#6fa8dc"};
+  const phases=state.roadmapPhases;
 
   let html='<div class="roadmap-track">';
   phases.forEach((phase,idx)=>{
+    const color=PHASE_PALETTE[idx%PHASE_PALETTE.length];
     const cards=state.projects.filter(p=>p.categoria===phase);
     const done=cards.filter(p=>p.stage==="Concluído").length;
     const total=cards.length;
     const pct=total>0?Math.round(done/total*100):0;
-    const color=phaseColors[phase];
     const hasProgress=done>0;
 
     const resps=[...new Set(cards.filter(p=>p.responsible).map(p=>p.responsible))];
@@ -1103,7 +1180,10 @@ function renderRoadmap(){
       :`<div class="phase-empty">Nenhum card nesta fase</div>`;
 
     html+=`<div class="phase-card-rm ${hasProgress?"has-progress":""}">
-      <div class="ph-name"><span class="ph-dot" style="background:${color}"></span>${esc(phase)}</div>
+      <div class="ph-name">
+        <span class="ph-dot" style="background:${color}"></span>
+        <input class="ph-name-input" value="${esc(phase)}" data-pi="${idx}" spellcheck="false" title="Clique para renomear">
+      </div>
       <div class="phase-bar-wrap"><div class="phase-bar-fill" style="width:${pct}%;background:${color}"></div></div>
       <div class="phase-stats"><span>${done}/${total} concluído${done===1?"":"s"}</span><span style="font-weight:600;color:${pct===100?"var(--green)":pct>0?"var(--leaf)":"var(--muted)"}">${pct}%</span></div>
       ${resps.length>0?`<div class="phase-resps">${respHtml}</div>`:""}
@@ -1119,6 +1199,23 @@ function renderRoadmap(){
       const p=state.projects.find(x=>x.id===el.dataset.id);
       if(p) openModal(p,false);
     });
+  });
+
+  container.querySelectorAll(".ph-name-input").forEach(inp=>{
+    inp.addEventListener("change",async()=>{
+      const i=+inp.dataset.pi;
+      const old=state.roadmapPhases[i];
+      const val=inp.value.trim()||old;
+      if(val!==old){
+        state.roadmapPhases[i]=val;
+        const toUpdate=state.projects.filter(p=>p.categoria===old);
+        toUpdate.forEach(p=>p.categoria=val);
+        await saveMeta("roadmap_phases",state.roadmapPhases);
+        await Promise.all(toUpdate.map(p=>saveProject(p)));
+        renderRoadmap(); renderBoard(); renderLaunchBar(); renderDue();
+      }
+    });
+    inp.addEventListener("keydown",e=>{ if(e.key==="Enter")inp.blur(); });
   });
 }
 
@@ -1264,6 +1361,7 @@ async function boot(url, key){
     await loadFromDB();
     if(!state.seededV3) await seedDefaultData();
     applyMeta();
+    renderLaunchBar();
     renderDue();
     renderCompanyFilter();
     renderBoard();
@@ -1282,6 +1380,21 @@ async function boot(url, key){
     ls.style.display="flex";
   }
 }
+
+/* ---------- Theme toggle ---------- */
+const THEME_KEY="kanban_theme_v1";
+function applyTheme(t){
+  document.documentElement.setAttribute("data-theme",t);
+  const btn=document.getElementById("themeToggle");
+  if(btn) btn.textContent=t==="light"?"🌙":"☀️";
+}
+(()=>{ applyTheme(localStorage.getItem(THEME_KEY)||"dark"); })();
+document.getElementById("themeToggle").addEventListener("click",()=>{
+  const cur=document.documentElement.getAttribute("data-theme")||"dark";
+  const next=cur==="light"?"dark":"light";
+  localStorage.setItem(THEME_KEY,next);
+  applyTheme(next);
+});
 
 /* ---------- Hardcoded credentials (embedded — no setup screen needed) ---------- */
 const SUPABASE_URL = "https://kpxjxbtoiezhxfqdvpnj.supabase.co";
