@@ -117,6 +117,8 @@ header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:2
 .btn:hover{border-color:var(--leaf);background:var(--panel2);transform:translateY(-1px)}
 .btn.primary{background:linear-gradient(150deg,var(--leaf),var(--leaf-deep));border:none;color:#0c130f;font-weight:600}
 .btn.ghost{background:transparent}
+.btn.danger{background:var(--red);border-color:var(--red);color:#fff;font-weight:600}
+.btn.danger:hover{background:#e08878;border-color:#e08878;transform:translateY(-1px)}
 
 /* ---------- Due-date boxes ---------- */
 .due-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-bottom:18px}
@@ -488,6 +490,20 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
         <input type="text" id="coNew" placeholder="Nome da nova categoria…" style="flex:1;background:var(--bg2);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:11px 13px;font-family:'Outfit';font-size:14px;outline:none">
         <button class="btn primary" id="coNewBtn">＋ Adicionar</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmação de exclusão -->
+<div class="overlay" id="confirmOverlay">
+  <div class="modal" style="width:min(440px,100%);border-color:rgba(217,122,108,.4)">
+    <div class="modal-body" style="padding:30px 28px 22px;text-align:center">
+      <div style="font-size:38px;margin-bottom:14px">⚠️</div>
+      <p id="confirm-msg" style="font-size:14.5px;line-height:1.75;color:var(--ink)"></p>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;padding:16px 24px;border-top:1px solid var(--line);background:var(--bg2);border-radius:0 0 20px 20px">
+      <button class="btn ghost" id="confirmCancel">Cancelar</button>
+      <button class="btn danger" id="confirmOk">Sim, excluir</button>
     </div>
   </div>
 </div>
@@ -865,17 +881,21 @@ function renderBoard(){
 
   // Delete column
   board.querySelectorAll("[data-delcol]").forEach(b=>{
-    b.onclick=async()=>{
+    b.onclick=()=>{
       const ci=+b.dataset.delcol, col=state.columns[ci];
       const n=state.projects.filter(p=>p.stage===col).length;
-      if(n>0&&!confirm(`"${col}" tem ${n} projeto${n===1?"":"s"}. Excluir a etapa? Os projetos serão movidos para a primeira etapa disponível.`))return;
-      const fallback=state.columns.find(c=>c!==col)||"";
-      const toUpdate=state.projects.filter(p=>p.stage===col);
-      toUpdate.forEach(p=>p.stage=fallback);
-      state.columns.splice(ci,1);
-      await saveMeta("columns",state.columns);
-      await Promise.all(toUpdate.map(p=>saveProject(p)));
-      renderBoard();
+      const msg=n>0
+        ?`Tem certeza que deseja excluir a coluna <strong>"${esc(col)}"</strong>? Ela contém <strong>${n} projeto${n===1?"":"s"}</strong> que ${n===1?"será movido":"serão movidos"} para a primeira coluna disponível.`
+        :`Tem certeza que deseja excluir a coluna <strong>"${esc(col)}"</strong>?`;
+      confirmModal(msg,async()=>{
+        const fallback=state.columns.find(c=>c!==col)||"";
+        const toUpdate=state.projects.filter(p=>p.stage===col);
+        toUpdate.forEach(p=>p.stage=fallback);
+        state.columns.splice(ci,1);
+        await saveMeta("columns",state.columns);
+        await Promise.all(toUpdate.map(p=>saveProject(p)));
+        renderBoard();
+      });
     };
   });
 }
@@ -1060,14 +1080,16 @@ $("#addTodo").onclick=()=>{
 });
 
 /* ---------- Delete project ---------- */
-$("#delProj").onclick=async()=>{
+$("#delProj").onclick=()=>{
   if(!editing)return;
-  if(confirm("Excluir este projeto permanentemente?")){
-    state.projects=state.projects.filter(p=>p!==editing&&p.id!==editing.id);
-    await deleteProject(editing.id);
+  const snap=editing;
+  const nome=esc(snap.title||"este projeto");
+  confirmModal(`Tem certeza que deseja excluir o projeto <strong>"${nome}"</strong>?<br>Essa ação não pode ser desfeita.`,async()=>{
+    state.projects=state.projects.filter(p=>p!==snap&&p.id!==snap.id);
+    await deleteProject(snap.id);
     $("#overlay").classList.remove("open"); editing=null;
     renderBoard(); renderDue();
-  }
+  });
 };
 
 $("#closeModal").onclick=closeModal;
@@ -1112,16 +1134,20 @@ function renderCoManager(){
       renderBoard(); renderCompanyFilter();
     });
     inp.addEventListener("keydown",e=>{if(e.key==="Enter")inp.blur();});
-    row.querySelector(".rm").onclick=async()=>{
+    row.querySelector(".rm").onclick=()=>{
       const name=state.companies[i];
       const used=state.projects.filter(p=>(p.companies||[]).includes(name)).length;
-      if(used>0&&!confirm(`"${name}" é usada por ${used} projeto${used===1?"":"s"}. Excluir e remover desses projetos?`))return;
-      state.companies.splice(i,1);
-      state.projects.forEach(p=>{if(p.companies)p.companies=p.companies.filter(x=>x!==name);});
-      if(filters.company===name)filters.company="";
-      await saveMeta("companies",state.companies);
-      await Promise.all(state.projects.filter(p=>p.data).map(p=>saveProject(p)));
-      renderCoManager(); renderBoard(); renderCompanyFilter();
+      const msg=used>0
+        ?`Tem certeza que deseja excluir a categoria <strong>"${esc(name)}"</strong>? Ela está sendo usada em <strong>${used} projeto${used===1?"":"s"}</strong>.`
+        :`Tem certeza que deseja excluir a categoria <strong>"${esc(name)}"</strong>?`;
+      confirmModal(msg,async()=>{
+        state.companies.splice(i,1);
+        state.projects.forEach(p=>{if(p.companies)p.companies=p.companies.filter(x=>x!==name);});
+        if(filters.company===name)filters.company="";
+        await saveMeta("companies",state.companies);
+        await Promise.all(state.projects.filter(p=>p.data).map(p=>saveProject(p)));
+        renderCoManager(); renderBoard(); renderCompanyFilter();
+      });
     };
     box.appendChild(row);
   });
@@ -1144,11 +1170,34 @@ $("#coNew").addEventListener("keydown",e=>{if(e.key==="Enter")addCoOption();});
 
 
 
+/* ---------- Confirm modal ---------- */
+let confirmCallback=null;
+function confirmModal(msg, onConfirm){
+  document.getElementById("confirm-msg").innerHTML=msg;
+  document.getElementById("confirmOverlay").classList.add("open");
+  confirmCallback=onConfirm;
+}
+document.getElementById("confirmOk").onclick=()=>{
+  document.getElementById("confirmOverlay").classList.remove("open");
+  const cb=confirmCallback; confirmCallback=null;
+  if(cb) cb();
+};
+document.getElementById("confirmCancel").onclick=()=>{
+  document.getElementById("confirmOverlay").classList.remove("open");
+  confirmCallback=null;
+};
+document.getElementById("confirmOverlay").addEventListener("mousedown",e=>{
+  if(e.target.id==="confirmOverlay"){ document.getElementById("confirmOverlay").classList.remove("open"); confirmCallback=null; }
+});
+
 /* ---------- Keyboard ---------- */
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape"){
     if($("#overlay").classList.contains("open"))closeModal();
     if($("#coOverlay").classList.contains("open"))$("#coOverlay").classList.remove("open");
+    if(document.getElementById("confirmOverlay").classList.contains("open")){
+      document.getElementById("confirmOverlay").classList.remove("open"); confirmCallback=null;
+    }
   }
 });
 
