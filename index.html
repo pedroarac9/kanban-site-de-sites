@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wildbird / Monstera — Project Board</title>
+<title>Project Board</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
   --bg:#0e1311;
@@ -41,17 +42,55 @@ body{
 ::-webkit-scrollbar{height:11px;width:11px}
 ::-webkit-scrollbar-thumb{background:var(--line);border-radius:20px}
 ::-webkit-scrollbar-track{background:transparent}
-
 h1,h2,h3,.serif{font-family:'Fraunces',serif}
+
+/* ---------- Loading screen ---------- */
+#loading-screen{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .4s}
+#loading-screen.fade-out{opacity:0;pointer-events:none}
+#loading-screen .spinner{width:42px;height:42px;border:3px solid var(--line);border-top-color:var(--leaf);border-radius:50%;animation:spin .8s linear infinite}
+#loading-screen .load-txt{color:var(--muted);font-size:14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---------- Setup screen ---------- */
+#setup-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:998;align-items:center;justify-content:center;padding:24px}
+#setup-screen.visible{display:flex}
+.setup-box{width:min(520px,100%);background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:36px;box-shadow:var(--shadow)}
+.setup-box h2{font-family:'Fraunces';font-size:26px;margin-bottom:8px}
+.setup-box p{color:var(--muted);font-size:13.5px;line-height:1.6;margin-bottom:24px}
+.setup-field{margin-bottom:16px}
+.setup-field label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:1.6px;color:var(--muted);margin-bottom:8px}
+.setup-field input{width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:11px 13px;font-family:'Outfit';font-size:14px;outline:none;transition:.16s}
+.setup-field input:focus{border-color:var(--leaf)}
+.setup-error{color:var(--red);font-size:13px;margin-top:-8px;margin-bottom:12px;display:none}
+.setup-note{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.5}
+.setup-note a{color:var(--leaf);text-decoration:none}
+.setup-note a:hover{text-decoration:underline}
 
 /* ---------- Header ---------- */
 header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:22px}
 .brand{display:flex;align-items:center;gap:14px}
 .brand .mark{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;
-  background:linear-gradient(150deg,var(--leaf),var(--leaf-deep));font-size:22px;box-shadow:var(--shadow)}
-.brand h1{font-size:clamp(24px,3vw,34px);font-weight:600;letter-spacing:-.5px;line-height:1}
-.brand p{color:var(--muted);font-size:13px;margin-top:5px}
-.head-actions{display:flex;gap:10px}
+  background:linear-gradient(150deg,var(--leaf),var(--leaf-deep));font-size:22px;box-shadow:var(--shadow);
+  cursor:pointer;transition:.15s;position:relative}
+.brand .mark:hover{transform:scale(1.08)}
+.brand .mark input.emoji-in{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:22px;text-align:center;border:none;background:transparent}
+.brand h1 input.board-title-in{font-family:'Fraunces';font-size:clamp(24px,3vw,34px);font-weight:600;letter-spacing:-.5px;line-height:1;
+  background:transparent;border:none;color:var(--ink);outline:none;border-radius:8px;padding:3px 6px;width:100%;min-width:160px}
+.brand h1 input.board-title-in:hover{background:var(--panel)}
+.brand h1 input.board-title-in:focus{background:var(--panel2);box-shadow:0 0 0 1px var(--leaf)}
+.brand p input.board-sub-in{color:var(--muted);font-size:13px;background:transparent;border:none;outline:none;
+  font-family:'Outfit';width:100%;min-width:120px;border-radius:6px;padding:2px 5px}
+.brand p input.board-sub-in:hover{background:var(--panel)}
+.brand p input.board-sub-in:focus{background:var(--panel2);box-shadow:0 0 0 1px var(--leaf);color:var(--ink)}
+.head-actions{display:flex;gap:10px;align-items:center}
+
+/* ---------- Connection status ---------- */
+.conn-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none;transition:.3s}
+.conn-dot.live{background:var(--green);box-shadow:0 0 6px rgba(127,185,138,.5)}
+.conn-dot.error{background:var(--red)}
+.conn-label{font-size:11.5px;color:var(--muted)}
+
+/* ---------- Buttons ---------- */
 .btn{cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink);
   font-family:'Outfit';font-size:13px;font-weight:500;padding:9px 15px;border-radius:10px;transition:.18s;display:inline-flex;align-items:center;gap:7px}
 .btn:hover{border-color:var(--leaf);background:var(--panel2);transform:translateY(-1px)}
@@ -70,7 +109,7 @@ header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:2
 .due-card.alarm .big{color:var(--red)}
 .due-card .leaf-deco{position:absolute;right:-20px;bottom:-26px;font-size:96px;opacity:.05;transform:rotate(-12deg);pointer-events:none}
 
-/* ---------- Controls (search + filters) ---------- */
+/* ---------- Controls ---------- */
 .controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:22px;
   background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
 .search-wrap{position:relative;flex:1 1 260px;min-width:200px}
@@ -80,13 +119,6 @@ header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:2
 .search-wrap input:focus{border-color:var(--leaf)}
 .filter-group{display:flex;align-items:center;gap:7px}
 .filter-group label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted)}
-.chip{cursor:pointer;font-size:12.5px;padding:7px 13px;border-radius:20px;border:1px solid var(--line);
-  background:var(--bg2);color:var(--ink-soft);transition:.16s;font-weight:500}
-.chip:hover{border-color:var(--leaf)}
-.chip.active{background:var(--leaf);color:#0c130f;border-color:var(--leaf);font-weight:600}
-.chip.active.p-High{background:var(--red);border-color:var(--red);color:#1a0f0d}
-.chip.active.p-Medium{background:var(--yellow);border-color:var(--yellow);color:#1a160d}
-.chip.active.p-Low{background:var(--green);border-color:var(--green);color:#0d1a0f}
 .company-filter{position:relative}
 .company-filter select{appearance:none;cursor:pointer;background:var(--bg2);border:1px solid var(--line);
   color:var(--ink);border-radius:20px;padding:7px 30px 7px 13px;font-family:'Outfit';font-size:12.5px;outline:none}
@@ -176,7 +208,6 @@ header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:2
 .status-line{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:11px 13px;font-size:14px}
 .status-line .sdot{width:9px;height:9px;border-radius:50%;background:var(--leaf)}
 .status-line .hint{margin-left:auto;font-size:11px;color:var(--muted)}
-/* to-do list */
 .todos{display:flex;flex-direction:column;gap:7px}
 .todo{display:flex;align-items:flex-start;gap:10px;background:var(--bg2);border:1px solid var(--line);border-radius:9px;padding:9px 11px}
 .todo input[type=checkbox]{appearance:none;width:17px;height:17px;border:1.5px solid var(--muted);border-radius:5px;cursor:pointer;flex:none;margin-top:1px;position:relative;transition:.15s}
@@ -191,23 +222,69 @@ header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:2
 .modal-foot{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-top:1px solid var(--line);background:var(--bg2)}
 .del-proj{color:var(--red);background:none;border:none;cursor:pointer;font-size:13px;font-family:'Outfit'}
 .del-proj:hover{text-decoration:underline}
-.save-note{font-size:12px;color:var(--muted)}
+.save-note{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.save-spinner{width:12px;height:12px;border:2px solid var(--line);border-top-color:var(--leaf);border-radius:50%;animation:spin .7s linear infinite;display:none}
+.save-spinner.active{display:block}
 footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
 .empty-hint{color:var(--muted);font-size:12.5px;text-align:center;padding:18px 6px;font-style:italic}
+
+/* ---------- Toast ---------- */
+.toast{position:fixed;bottom:28px;right:28px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+  border-radius:12px;padding:12px 18px;font-size:13.5px;z-index:200;transform:translateY(80px);
+  opacity:0;transition:.3s cubic-bezier(.34,1.56,.64,1);pointer-events:none;box-shadow:var(--shadow)}
+.toast.show{transform:none;opacity:1}
+.toast.err{border-color:var(--red);color:var(--red)}
 </style>
 </head>
 <body>
 
+<!-- Loading screen -->
+<div id="loading-screen">
+  <div class="spinner"></div>
+  <div class="load-txt" id="load-txt">Connecting to Supabase…</div>
+</div>
+
+<!-- Setup screen (shown when no credentials) -->
+<div id="setup-screen">
+  <div class="setup-box">
+    <div style="font-size:32px;margin-bottom:12px">🌿</div>
+    <h2>Connect to Supabase</h2>
+    <p>Enter your Supabase credentials to start. These are stored only in your browser (localStorage) and never sent anywhere else.</p>
+    <div class="setup-field">
+      <label>Supabase URL</label>
+      <input type="text" id="setup-url" placeholder="https://xxxxxxxxxxxx.supabase.co">
+    </div>
+    <div class="setup-field">
+      <label>Supabase Anon Key</label>
+      <input type="text" id="setup-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…">
+    </div>
+    <div class="setup-error" id="setup-error"></div>
+    <button class="btn primary" id="setup-save" style="width:100%;justify-content:center;padding:13px">Connect board</button>
+    <p class="setup-note">
+      Don't have a project yet? <a href="https://supabase.com" target="_blank">Create one free at supabase.com</a><br>
+      Find your URL and anon key in <strong>Project Settings → API</strong>.
+    </p>
+  </div>
+</div>
+
+<!-- Main app (hidden until connected) -->
+<div id="app" style="display:none">
+
 <header class="top">
   <div class="brand">
-    <div class="mark">🌿</div>
+    <div class="mark" title="Click to change emoji">
+      <span id="emoji-display">🌿</span>
+      <input class="emoji-in" id="emoji-in" type="text" maxlength="2" title="Type an emoji">
+    </div>
     <div>
-      <h1>Project Board</h1>
-      <p>EA Workspace</p>
+      <h1><input class="board-title-in" id="board-title" value="Project Board" placeholder="Board name…"></h1>
+      <p><input class="board-sub-in" id="board-sub" value="My Workspace" placeholder="Subtitle…"></p>
     </div>
   </div>
   <div class="head-actions">
-    <button class="btn ghost" id="resetBtn" title="Reset to the original Notion snapshot">↺ Reset data</button>
+    <span class="conn-dot" id="conn-dot"></span>
+    <span class="conn-label" id="conn-label">connecting…</span>
+
     <button class="btn primary" id="newProjBtn">＋ New project</button>
   </div>
 </header>
@@ -220,16 +297,20 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
     <input type="text" id="search" placeholder="Search projects, descriptions, objectives, to-do's…">
   </div>
   <div class="filter-group">
-    <label>Company</label>
+    <label>Category</label>
     <div class="company-filter"><select id="companyFilter"><option value="">All</option></select></div>
-    <button class="btn ghost" id="manageCo" title="Edit the company options" style="padding:7px 11px;font-size:12px">✎ Edit</button>
+    <button class="btn ghost" id="manageCo" title="Edit category options" style="padding:7px 11px;font-size:12px">✎ Edit</button>
   </div>
   <span class="clearf" id="clearFilters">clear</span>
 </div>
 
 <div class="board" id="board"></div>
 
-<!-- Modal -->
+<footer>Drag cards between stages · click a card to expand · all data lives in Supabase · <span id="footer-board-name">Project Board</span></footer>
+
+</div><!-- /app -->
+
+<!-- Project Modal -->
 <div class="overlay" id="overlay">
   <div class="modal" id="modal">
     <div class="modal-head">
@@ -238,7 +319,7 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
     </div>
     <div class="modal-body">
       <div class="field">
-        <label>Company</label>
+        <label>Category</label>
         <div class="companies-box" id="m-companies">
           <div class="co-add">
             <input type="text" id="co-input" placeholder="+ add / type to search" autocomplete="off">
@@ -252,9 +333,18 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
           <input type="date" id="m-deadline">
         </div>
         <div class="field">
-          <label>Status (mirrors the stage)</label>
-          <div class="status-line"><span class="sdot" id="m-sdot"></span><span id="m-status">—</span><span class="hint">drag the card to change</span></div>
+          <label>Priority</label>
+          <select id="m-priority">
+            <option value="">— none —</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
         </div>
+      </div>
+      <div class="field">
+        <label>Status (mirrors the stage)</label>
+        <div class="status-line"><span class="sdot" id="m-sdot"></span><span id="m-status">—</span><span class="hint">drag the card to change</span></div>
       </div>
       <div class="field">
         <label>Description</label>
@@ -272,215 +362,75 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
     </div>
     <div class="modal-foot">
       <button class="del-proj" id="delProj">Delete project</button>
-      <span class="save-note">Changes save automatically</span>
+      <span class="save-note"><div class="save-spinner" id="save-spinner"></div><span id="save-txt">Saved to Supabase</span></span>
     </div>
   </div>
 </div>
 
-<footer>Drag cards between stages · double-click a stage name to rename · everything saves to this file's local storage in your browser.</footer>
-
-<!-- Company manager -->
+<!-- Category manager modal -->
 <div class="overlay" id="coOverlay">
   <div class="modal" style="width:min(460px,100%)">
     <div class="modal-head">
-      <input class="title-in" value="Companies" readonly style="cursor:default">
+      <input class="title-in" value="Categories" readonly style="cursor:default">
       <button class="x" id="closeCo">✕</button>
     </div>
     <div class="modal-body">
-      <p style="color:var(--muted);font-size:12.5px;margin:6px 0 12px">Rename or delete the options that appear in every project's Company dropdown. Renaming updates all projects; deleting removes the option from projects too.</p>
+      <p style="color:var(--muted);font-size:12.5px;margin:6px 0 12px">Rename or delete options that appear in every project. Renaming updates all projects; deleting removes it from projects too.</p>
       <div class="todos" id="coList"></div>
       <div style="display:flex;gap:8px;margin-top:14px">
-        <input type="text" id="coNew" placeholder="New company name…" style="flex:1;background:var(--bg2);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:11px 13px;font-family:'Outfit';font-size:14px;outline:none">
+        <input type="text" id="coNew" placeholder="New category name…" style="flex:1;background:var(--bg2);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:11px 13px;font-family:'Outfit';font-size:14px;outline:none">
         <button class="btn primary" id="coNewBtn">＋ Add</button>
       </div>
     </div>
   </div>
 </div>
 
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
 <script>
 /* ============================================================
-   DATA  — seeded from the Notion "Projects" database snapshot.
-   After first load, your edits live in your browser (localStorage).
-   Use "Reset data" to return to this seed.
+   SUPABASE KANBAN BOARD
+   All data lives in Supabase. Tables required:
+     - board_meta  (id text PK, value jsonb)
+     - projects    (id text PK, data jsonb, stage text, updated_at timestamptz)
+   Real-time enabled on both tables for live sync.
    ============================================================ */
-const SEED = {
-  // Stage columns. You can rename / add / delete these freely in the UI.
-  columns: ["Long-term","No status","In Progress","Paused","Completed"],
-  // Company dropdown options (editable — add your own in any project).
-  companies: ["Wildbird","Island Nerve Institute","Banyan Systems","Monstera Practice Co","Upper Cervical Clinic","Tribe Z","Cross-cutting"],
-  projects: [
-    { id:"p1", title:"Peptide Patient Workflow — Go High Level", stage:"In Progress", priority:"High",
-      companies:["Island Nerve Institute"], deadline:"2026-05-26",
-      desc:"Dedicated peptide pipeline in GHL, fully separate from the chiro 'sore painfree' pipeline. Cold weight-loss/aesthetic audience, sales-forward tone. Wildbird chiro leads still need a live phone call to book; peptide side runs automated SMS + Mia AI.",
-      objective:"A fully functional, white-label-ready peptide pipeline in GHL with automation moving leads stage-to-stage with no manual intervention. Live and approved by Dr. Jo.",
-      todos:[
-        {t:"Create new 'Peptide' pipeline in GHL",d:true},
-        {t:"Regain access to all GHL sub-accounts",d:true},
-        {t:"Duplicate chiro workflows and adapt for peptide focus",d:false},
-        {t:"Build follow-up sequence: days 3, 5, 7, 10",d:false},
-        {t:"Build 10-min automated trigger after call task checked off",d:false},
-        {t:"Integrate & train Mia AI bot",d:false},
-        {t:"Test objection responses with Claude",d:false},
-        {t:"Set custom values for white-label clinic name",d:false},
-        {t:"Resolve errors, self-test, get Dr. Jo's publish approval",d:false}
-      ]},
-    { id:"p2", title:"Generic Clinic Workflow — Go High Level", stage:"In Progress", priority:"High",
-      companies:["Cross-cutting"], deadline:"",
-      desc:"Second, generic version of the GHL workflow (decided 05/26) — Meta-ads-safe, not peptide-specific, reusable across clinics. Spun off so the peptide workflow can stay as-is.",
-      objective:"A clean, white-label generic clinic pipeline that complies with Meta ad policy and can be cloned per clinic.",
-      todos:[{t:"Clone base structure from peptide workflow",d:false},{t:"Strip peptide-specific messaging",d:false},{t:"Make Meta-ad-policy safe",d:false},{t:"Template custom values for any clinic",d:false}]},
-    { id:"p3", title:"Banyan Systems Workflow — Go High Level", stage:"In Progress", priority:"Medium",
-      companies:["Banyan Systems"], deadline:"",
-      desc:"GHL workflow build/tweaks for the Banyan Systems side of operations.",
-      objective:"Working GHL automation aligned to Banyan's marketing needs.",
-      todos:[{t:"Scope requirements with Pierce",d:false},{t:"Build pipeline & automations",d:false}]},
-    { id:"p4", title:"Island Nerve Institute — GHL Workflow Tweaks", stage:"In Progress", priority:"Medium",
-      companies:["Island Nerve Institute"], deadline:"",
-      desc:"Adjustments and refinements to the existing Island Nerve Institute GHL workflows.",
-      objective:"Optimized neuropathy lead workflow running cleanly in GHL.",
-      todos:[{t:"Audit current workflow",d:false},{t:"Apply tweaks",d:false},{t:"Verify with Karina (leads)",d:false}]},
-    { id:"p5", title:"Monstera Practice Co — Fundability + Website", stage:"Paused", priority:"Medium",
-      companies:["Monstera Practice Co"], deadline:"",
-      desc:"Build business credit for the MSO via Fundability: complete the Fundability profile, stand up a basic Lovable website (required for credit-building), and create a Monstera-branded Google Workspace email. Neil is the Fundability contact.",
-      objective:"Monstera set up to build business credit — Fundability filled in, public website live, branded email created.",
-      todos:[
-        {t:"Access Fundability dashboard",d:false},
-        {t:"Review entity-documents folder from Dr. Jo",d:false},
-        {t:"Fill in everything possible on Fundability",d:false},
-        {t:"Get Lovable access & build basic Monstera site",d:false},
-        {t:"Wait for Dr. Jo's mission/vision content",d:false},
-        {t:"Create Monstera-branded email for Dr. Jo",d:false}
-      ]},
-    { id:"p6", title:"Dr. Jo Email Consolidation", stage:"In Progress", priority:"Medium",
-      companies:["Cross-cutting"], deadline:"",
-      desc:"Merge Dr. Jo's 5 email addresses into one Gmail inbox via 'Send As', keeping a distinct signature per sending identity.",
-      objective:"One inbox to manage, with correct per-sender signatures when replying as each address.",
-      todos:[{t:"Set up 'Send As' for each address",d:false},{t:"Build per-sender signatures",d:false},{t:"Test send/reply identity",d:false}]},
-    { id:"p7", title:"Inbox Triage System", stage:"In Progress", priority:"Medium",
-      companies:["Cross-cutting"], deadline:"",
-      desc:"Gmail automation (Google Apps Script) that archives '2. Waiting On' labeled emails and restores them to the inbox on reply. Must run from Dr. Jo's own account, not delegated access.",
-      objective:"A hands-off triage script keeping the inbox clean and surfacing replies automatically.",
-      todos:[{t:"Finalize Apps Script logic",d:false},{t:"Deploy from Dr. Jo's own account",d:false},{t:"Monitor for misfires",d:false}]},
-    { id:"p8", title:"Patient Transition Email — Wildbird", stage:"In Progress", priority:"High",
-      companies:["Wildbird"], deadline:"2026-06-03",
-      desc:"Patient-facing email announcing Dr. Jo's departure / transition. Targeting June 3rd. Awaiting Dr. Jo's approval.",
-      objective:"Approved, warm transition email sent to patients on/around June 3.",
-      todos:[{t:"Draft email copy",d:true},{t:"Get Dr. Jo's approval",d:false},{t:"Schedule/send for Jun 3",d:false}]},
-    { id:"p9", title:"Patient Email — Dr. Jo's Departure Announcement", stage:"In Progress", priority:"High",
-      companies:["Wildbird"], deadline:"2026-06-03",
-      desc:"Formal departure announcement to the patient base, coordinated with the transition email.",
-      objective:"Clear, approved announcement delivered on schedule (Jun 3, 2026).",
-      todos:[{t:"Align messaging with transition email",d:false},{t:"Final approval",d:false}]},
-    { id:"p10", title:"Center Spread — Wildbird", stage:"Paused", priority:"Medium",
-      companies:["Wildbird"], deadline:"",
-      desc:"Print center-spread piece for Wildbird. Separate from the ad video. Waiting on Dr. Robyn's photos and copy direction.",
-      objective:"Finished center-spread layout ready for print.",
-      todos:[{t:"Collect Dr. Robyn's photos",d:false},{t:"Get copy direction",d:false},{t:"Lay out spread",d:false}]},
-    { id:"p11", title:"Wildbird Advertising Video", stage:"Paused", priority:"Medium",
-      companies:["Wildbird","Banyan Systems"], deadline:"",
-      desc:"New Wildbird ad video. Pierce is responsible for the project — Pedro does not need to follow up for now. EDS / hypermobility positioning (Dr. Robyn's specialty).",
-      objective:"Produced Wildbird ad video reflecting the EDS/hypermobility specialty hub positioning.",
-      todos:[{t:"Pierce owns filming dates",d:false},{t:"Define distribution channels",d:false}]},
-    { id:"p12", title:"GoHighLevel Mastery", stage:"In Progress", priority:"Medium",
-      companies:["Cross-cutting"], deadline:"",
-      desc:"Ongoing skill-building in GoHighLevel so Pedro can own CRM/marketing automation across the clinics.",
-      objective:"Confident, independent command of GHL pipelines, workflows, and white-labeling.",
-      todos:[{t:"Work through GHL training",d:false},{t:"Apply learnings to live workflows",d:false}]},
-    { id:"p13", title:"Sales Scripts & Training — Dr. Ana", stage:"In Progress", priority:"Medium",
-      companies:["Wildbird"], deadline:"",
-      desc:"Develop sales scripts ('Scripts de Vendas') and training material for Dr. Ana (Associate Chiropractor).",
-      objective:"Dr. Ana equipped with effective sales scripts and onboarding/training resources.",
-      todos:[{t:"Draft sales scripts",d:false},{t:"Build training material",d:false},{t:"Review with Dr. Jo / Dr. Ana",d:false}]},
-    { id:"p14", title:"Leads & Team Supervision", stage:"In Progress", priority:"Medium",
-      companies:["Cross-cutting"], deadline:"",
-      desc:"Umbrella project for recurring operations — supervising leads handling (Karina / Kailani) and team coordination. Individual recurring tasks live in the Tasks DB.",
-      objective:"Smooth, monitored lead handling and front-desk supervision.",
-      todos:[{t:"Monitor Karina (leads/sales)",d:false},{t:"Support Kailani (front desk)",d:false}]},
-    { id:"p15", title:"Daily Meeting Cadence & Agenda Discipline", stage:"In Progress", priority:"Low",
-      companies:["Cross-cutting"], deadline:"",
-      desc:"Maintain the daily Dr. Jo meeting rhythm and agenda discipline. Dr. Jo's admin days are Mondays and Thursdays. Note: Dr. Jo picks up Riley Wed 2:30 PM HST.",
-      objective:"Consistent, well-run daily meetings with clear agendas and follow-through.",
-      todos:[{t:"Keep agenda doc updated",d:false},{t:"Record & transcribe meetings",d:false}]},
-    { id:"p16", title:"ChiroTouch Onboarding", stage:"In Progress", priority:"Low",
-      companies:["Wildbird"], deadline:"",
-      desc:"Get up to speed on ChiroTouch practice-management software.",
-      objective:"Working proficiency in ChiroTouch for practice operations.",
-      todos:[{t:"Complete onboarding modules",d:false}]},
-    { id:"p17", title:"Sales Scripts — General", stage:"In Progress", priority:"Low",
-      companies:["Cross-cutting"], deadline:"",
-      desc:"General sales-script development beyond Dr. Ana's set.",
-      objective:"Reusable sales scripts for the team.",
-      todos:[{t:"Draft general scripts",d:false}]},
-    { id:"p18", title:"Peptides Flyer", stage:"In Progress", priority:"Medium",
-      companies:["Island Nerve Institute"], deadline:"",
-      desc:"Marketing flyer for the peptide program.",
-      objective:"Finished, on-brand peptides flyer ready to distribute.",
-      todos:[{t:"Draft copy",d:false},{t:"Design layout",d:false},{t:"Dr. Jo approval",d:false}]},
-    { id:"p19", title:"Visitor Card — Dr. Jo Eddins", stage:"In Progress", priority:"Low",
-      companies:["Wildbird"], deadline:"",
-      desc:"Visitor/business card design for Dr. Jo.",
-      objective:"Print-ready visitor card.",
-      todos:[{t:"Design card",d:false},{t:"Approve & order",d:false}]},
-    { id:"p20", title:"LeatherPro Hawaii — Chiro Table Reupholstering", stage:"In Progress", priority:"Low",
-      companies:["Wildbird"], deadline:"",
-      desc:"Coordinate reupholstering of chiropractic tables with Phil at LeatherPro Hawaii.",
-      objective:"Tables reupholstered and back in service.",
-      todos:[{t:"Get quote from Phil",d:false},{t:"Schedule the work",d:false}]},
-    { id:"p21", title:"Contractor Setup & Payment Agreement — Pedro", stage:"In Progress", priority:"Low",
-      companies:["Cross-cutting"], deadline:"",
-      desc:"Pedro's contractor setup and payment agreement. Wise for receipt; formalizing a Brazilian business entity for invoicing is intentionally delayed.",
-      objective:"Clear, documented payment arrangement in place.",
-      todos:[{t:"Confirm payment via Wise",d:false},{t:"Defer Brazilian entity invoicing",d:true}]},
-    { id:"p22", title:"Pedro — Intro Video for the Team", stage:"In Progress", priority:"Low",
-      companies:["Cross-cutting"], deadline:"",
-      desc:"Short introduction video so the team gets to know Pedro.",
-      objective:"Recorded intro video shared with the team.",
-      todos:[{t:"Script intro",d:false},{t:"Record & share",d:false}]},
-    { id:"p23", title:"EA Onboarding & Mindset", stage:"In Progress", priority:"Low",
-      companies:["Cross-cutting"], deadline:"",
-      desc:"Pedro's overall EA onboarding, systems setup, and working-relationship mindset with Dr. Jo.",
-      objective:"Fully ramped EA with all core systems running.",
-      todos:[{t:"Stand up core EA systems",d:false}]},
-    { id:"p24", title:"MSO Consolidation — Monstera", stage:"Paused", priority:"Medium",
-      companies:["Monstera Practice Co"], deadline:"",
-      desc:"Consolidate Wildbird, Island Nerve, and the Upper Cervical clinic under Monstera — phone lines, payroll, hiring, banking, and pulling clinic domains under the Monstera Google org (summer task).",
-      objective:"Clinics administratively unified under the Monstera MSO.",
-      todos:[{t:"Map current admin setup per clinic",d:false},{t:"Plan phone/payroll/banking consolidation",d:false},{t:"Pull domains under Monstera Google org (summer)",d:false}]},
-    { id:"p25", title:"MacBook Setup", stage:"Completed", priority:"Low",
-      companies:["Cross-cutting"], deadline:"",
-      desc:"Work MacBook procurement and setup.",
-      objective:"Working, configured MacBook for the role.",
-      todos:[{t:"Set up MacBook",d:true}]}
-  ]
-};
 
-/* ---------- State / persistence ---------- */
-const LS_KEY = "wildbird_kanban_v1";
-let state = load();
+const CRED_KEY = "kanban_supabase_creds_v1";
+const $ = s => document.querySelector(s);
 
-function load(){
-  try{
-    const raw = localStorage.getItem(LS_KEY);
-    if(raw) return JSON.parse(raw);
-  }catch(e){}
-  return structuredClone(SEED);
+/* ---------- Credentials ---------- */
+function getCreds(){
+  try{ return JSON.parse(localStorage.getItem(CRED_KEY)||"null"); }catch(e){ return null; }
 }
-function save(){
-  try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){}
+function saveCreds(url,key){
+  localStorage.setItem(CRED_KEY, JSON.stringify({url,key}));
+}
+function clearCreds(){
+  localStorage.removeItem(CRED_KEY);
 }
 
-/* ---------- Filters ---------- */
-let filters = { search:"", company:"" };
+/* ---------- Toast ---------- */
+let toastTimer;
+function toast(msg, isErr=false){
+  const t=$("#toast");
+  t.textContent=msg;
+  t.className="toast"+(isErr?" err":"");
+  requestAnimationFrame(()=>{ t.classList.add("show"); });
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove("show"),3000);
+}
 
 /* ---------- Helpers ---------- */
-const $ = s=>document.querySelector(s);
+const esc = s=>(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fmtDate = iso=>{
-  if(!iso) return null;
-  const d = new Date(iso+"T00:00:00");
+  if(!iso)return null;
+  const d=new Date(iso+"T00:00:00");
   return d.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});
 };
 const daysUntil = iso=>{
-  if(!iso) return null;
+  if(!iso)return null;
   const t=new Date(iso+"T00:00:00"), n=new Date(); n.setHours(0,0,0,0);
   return Math.round((t-n)/86400000);
 };
@@ -488,19 +438,175 @@ const stageColor = stage=>{
   const map={"In Progress":"var(--yellow)","Completed":"var(--green)","Paused":"var(--muted)","Blocked":"var(--red)","Long-term":"var(--leaf)"};
   return map[stage]||"var(--leaf)";
 };
-function projVisible(p){
-  if(filters.company && !(p.companies||[]).includes(filters.company)) return false;
-  if(filters.search){
-    const q=filters.search.toLowerCase();
-    const hay=[p.title,p.desc,p.objective,...(p.companies||[]),...(p.todos||[]).map(t=>t.t)].join(" ").toLowerCase();
-    if(!hay.includes(q)) return false;
+
+/* ---------- State ---------- */
+let supabase, realtimeSub;
+let state = {
+  columns: ["To Do","In Progress","Done"],
+  companies: [],
+  projects: [],
+  meta: { emoji:"🌿", title:"Project Board", subtitle:"My Workspace" }
+};
+let filters = { search:"", company:"" };
+let editing=null, isNew=false;
+let saveDebounce=null;
+
+/* ---------- Supabase init ---------- */
+async function initSupabase(url, key){
+  supabase = window.supabase.createClient(url, key);
+  // Test connection
+  const { error } = await supabase.from("board_meta").select("id").limit(1);
+  if(error) throw error;
+}
+
+/* ---------- Load all state from Supabase ---------- */
+async function loadFromDB(){
+  // Load meta (columns, companies, board title/emoji)
+  const { data: metaRows, error: me } = await supabase
+    .from("board_meta")
+    .select("id, value");
+  if(me) throw me;
+
+  metaRows.forEach(row=>{
+    if(row.id==="columns") state.columns = row.value;
+    if(row.id==="companies") state.companies = row.value;
+    if(row.id==="meta") state.meta = { ...state.meta, ...row.value };
+  });
+
+  // Load projects
+  const { data: projRows, error: pe } = await supabase
+    .from("projects")
+    .select("id, data, stage");
+  if(pe) throw pe;
+
+  state.projects = (projRows||[]).map(r=>({ ...r.data, id:r.id, stage:r.stage }));
+}
+
+/* ---------- Save helpers ---------- */
+async function saveMeta(key, value){
+  const { error } = await supabase
+    .from("board_meta")
+    .upsert({ id:key, value:value }, { onConflict:"id" });
+  if(error) console.error("saveMeta error", error);
+}
+
+async function saveProject(p){
+  setSaving(true);
+  const { stage, id, ...data } = p;
+  const { error } = await supabase
+    .from("projects")
+    .upsert({ id, stage, data, updated_at: new Date().toISOString() }, { onConflict:"id" });
+  setSaving(false);
+  if(error){ toast("Error saving: "+error.message, true); console.error(error); }
+}
+
+async function deleteProject(id){
+  const { error } = await supabase.from("projects").delete().eq("id", id);
+  if(error){ toast("Error deleting: "+error.message, true); console.error(error); }
+}
+
+function setSaving(on){
+  const sp=$("#save-spinner"), txt=$("#save-txt");
+  if(sp){ sp.classList.toggle("active",on); }
+  if(txt){ txt.textContent = on ? "Saving…" : "Saved to Supabase"; }
+}
+
+function scheduleSave(p){
+  clearTimeout(saveDebounce);
+  saveDebounce = setTimeout(()=>saveProject(p), 600);
+}
+
+/* ---------- Real-time ---------- */
+function setupRealtime(){
+  if(realtimeSub) supabase.removeChannel(realtimeSub);
+  realtimeSub = supabase
+    .channel("board-changes")
+    .on("postgres_changes",{ event:"*", schema:"public", table:"board_meta" }, payload=>{
+      const { id, value } = payload.new||{};
+      if(id==="columns"){ state.columns=value; renderBoard(); }
+      if(id==="companies"){ state.companies=value; renderCompanyFilter(); renderBoard(); }
+      if(id==="meta"){
+        state.meta={...state.meta,...value};
+        applyMeta();
+      }
+    })
+    .on("postgres_changes",{ event:"INSERT", schema:"public", table:"projects" }, payload=>{
+      const r=payload.new; const p={...r.data, id:r.id, stage:r.stage};
+      if(!state.projects.find(x=>x.id===r.id)) state.projects.push(p);
+      renderBoard(); renderDue();
+    })
+    .on("postgres_changes",{ event:"UPDATE", schema:"public", table:"projects" }, payload=>{
+      const r=payload.new; const idx=state.projects.findIndex(x=>x.id===r.id);
+      const updated={...r.data, id:r.id, stage:r.stage};
+      if(idx>=0) state.projects[idx]=updated;
+      else state.projects.push(updated);
+      if(editing && editing.id===r.id && !isNew){
+        // refresh modal only if not actively editing to avoid clobbering
+      }
+      renderBoard(); renderDue();
+    })
+    .on("postgres_changes",{ event:"DELETE", schema:"public", table:"projects" }, payload=>{
+      state.projects=state.projects.filter(p=>p.id!==payload.old.id);
+      renderBoard(); renderDue();
+    })
+    .subscribe(status=>{
+      const dot=$("#conn-dot"), lbl=$("#conn-label");
+      if(!dot||!lbl)return;
+      if(status==="SUBSCRIBED"){
+        dot.className="conn-dot live"; lbl.textContent="live";
+      } else {
+        dot.className="conn-dot error"; lbl.textContent="reconnecting…";
+      }
+    });
+}
+
+/* ---------- Apply board meta to UI ---------- */
+function applyMeta(){
+  const m=state.meta||{};
+  const emoji = m.emoji||"🌿";
+  const title = m.title||"Project Board";
+  const sub = m.subtitle||"My Workspace";
+  const disp=$("#emoji-display"); if(disp) disp.textContent=emoji;
+  const ti=$("#board-title"); if(ti&&document.activeElement!==ti) ti.value=title;
+  const si=$("#board-sub"); if(si&&document.activeElement!==si) si.value=sub;
+  const fb=$("#footer-board-name"); if(fb) fb.textContent=title;
+  document.title=title;
+}
+
+/* ---------- Editable header fields ---------- */
+function wireHeaderEdits(){
+  const titleIn=$("#board-title"), subIn=$("#board-sub"), emojiIn=$("#emoji-in");
+
+  function saveMetaField(key,val){
+    state.meta[key]=val;
+    saveMeta("meta", state.meta);
   }
-  return true;
+
+  titleIn.addEventListener("input",()=>{
+    saveMetaField("title", titleIn.value||"Project Board");
+    document.title=titleIn.value||"Project Board";
+    const fb=$("#footer-board-name"); if(fb)fb.textContent=titleIn.value||"Project Board";
+  });
+  subIn.addEventListener("input",()=>saveMetaField("subtitle", subIn.value||"My Workspace"));
+
+  // Emoji: click the mark shows a small native emoji picker via the hidden input
+  const mark=$(".brand .mark");
+  mark.addEventListener("click",()=>emojiIn.focus());
+  emojiIn.addEventListener("input",()=>{
+    const v=emojiIn.value.trim();
+    if(!v)return;
+    // Extract first grapheme cluster (handles emoji)
+    const seg=[...v];
+    const em=seg[0];
+    const disp=$("#emoji-display"); if(disp)disp.textContent=em;
+    saveMetaField("emoji",em);
+    emojiIn.value="";
+  });
 }
 
 /* ---------- Due-date banner ---------- */
 function renderDue(){
-  const row=$("#dueRow");
+  const row=$("#dueRow"); if(!row)return;
   const withDates=state.projects
     .filter(p=>p.deadline && p.stage!=="Completed")
     .sort((a,b)=>a.deadline.localeCompare(b.deadline));
@@ -510,38 +616,44 @@ function renderDue(){
     const du=daysUntil(next.deadline);
     const alarm = du!==null && du<=3;
     const when = du<0?`${Math.abs(du)} day${Math.abs(du)!==1?"s":""} overdue`
-               : du===0?"due today" : du===1?"due tomorrow" : `in ${du} days`;
-    html+=`<div class="due-card ${alarm?'alarm':''}">
+               : du===0?"due today":du===1?"due tomorrow":`in ${du} days`;
+    html+=`<div class="due-card ${alarm?"alarm":""}">
       <span class="pill">${when}</span>
       <div class="label">⏱ Next due date</div>
       <div class="big">${fmtDate(next.deadline)}</div>
       <div class="sub">${esc(next.title)}</div>
       <div class="leaf-deco">🌿</div>
     </div>`;
-  }else{
+  } else {
     html+=`<div class="due-card"><div class="label">⏱ Next due date</div><div class="big">No deadlines set</div><div class="sub">Add a deadline to a project to see it here</div><div class="leaf-deco">🌿</div></div>`;
   }
-  // small stat card
   const active=state.projects.filter(p=>p.stage!=="Completed").length;
   html+=`<div class="due-card">
     <div class="label">📊 At a glance</div>
     <div class="big">${active} active</div>
-    <div class="sub">${state.projects.length} total projects</div>
+    <div class="sub">${state.projects.length} total · ${state.columns.length} stages</div>
     <div class="leaf-deco">📌</div>
   </div>`;
   row.innerHTML=html;
 }
 
-function esc(s){return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
-
 /* ---------- Board ---------- */
+function projVisible(p){
+  if(filters.company&&!(p.companies||[]).includes(filters.company)) return false;
+  if(filters.search){
+    const q=filters.search.toLowerCase();
+    const hay=[p.title,p.desc,p.objective,...(p.companies||[]),...(p.todos||[]).map(t=>t.t)].join(" ").toLowerCase();
+    if(!hay.includes(q)) return false;
+  }
+  return true;
+}
+
 function renderBoard(){
-  const board=$("#board");
+  const board=$("#board"); if(!board)return;
   board.innerHTML="";
   state.columns.forEach((col,ci)=>{
     const colEl=document.createElement("div");
-    colEl.className="col";
-    colEl.dataset.col=col;
+    colEl.className="col"; colEl.dataset.col=col;
     const projs=state.projects.filter(p=>p.stage===col && projVisible(p));
     colEl.innerHTML=`
       <div class="col-head">
@@ -556,37 +668,52 @@ function renderBoard(){
     projs.forEach(p=>body.appendChild(cardEl(p)));
     const add=document.createElement("button");
     add.className="add-card"; add.textContent="＋ Add project";
-    add.onclick=()=>openModal(newProject(col));
+    add.onclick=()=>openModal(newProject(col),true);
     body.appendChild(add);
     board.appendChild(colEl);
-    wireColumn(colEl,body);
+    wireColumn(colEl);
   });
-  // add-column button
+  // Add column button
   const addCol=document.createElement("button");
   addCol.className="add-col"; addCol.textContent="＋"; addCol.title="Add stage";
-  addCol.onclick=()=>{
-    let name="New stage", i=2; while(state.columns.includes(name)){name="New stage "+i++;}
-    state.columns.push(name); save(); renderBoard();
+  addCol.onclick=async()=>{
+    let name="New stage",i=2; while(state.columns.includes(name)){name="New stage "+i++;}
+    state.columns.push(name);
+    await saveMeta("columns",state.columns);
+    renderBoard();
   };
   board.appendChild(addCol);
-  // rename + delete column handlers
+
+  // Rename column handlers
   board.querySelectorAll(".cname").forEach(inp=>{
-    inp.addEventListener("change",()=>{
+    inp.addEventListener("change",async()=>{
       const ci=+inp.dataset.ci, old=state.columns[ci], val=inp.value.trim()||old;
       if(val!==old){
-        state.projects.forEach(p=>{if(p.stage===old)p.stage=val;});
-        state.columns[ci]=val; save(); renderBoard();
+        // Update all projects in that stage
+        const toUpdate=state.projects.filter(p=>p.stage===old);
+        state.columns[ci]=val;
+        toUpdate.forEach(p=>p.stage=val);
+        await saveMeta("columns",state.columns);
+        await Promise.all(toUpdate.map(p=>saveProject(p)));
+        renderBoard();
       }
     });
     inp.addEventListener("keydown",e=>{if(e.key==="Enter")inp.blur();});
   });
+
+  // Delete column
   board.querySelectorAll("[data-delcol]").forEach(b=>{
-    b.onclick=()=>{
+    b.onclick=async()=>{
       const ci=+b.dataset.delcol, col=state.columns[ci];
       const n=state.projects.filter(p=>p.stage===col).length;
-      if(n>0 && !confirm(`"${col}" has ${n} project(s). Delete the stage? Projects move to "No status".`))return;
-      state.projects.forEach(p=>{if(p.stage===col)p.stage=(state.columns.find(c=>c==="No status")||state.columns[0]||"");});
-      state.columns.splice(ci,1); save(); renderBoard();
+      if(n>0&&!confirm(`"${col}" has ${n} project(s). Delete the stage? Projects move to the first available stage.`))return;
+      const fallback=state.columns.find(c=>c!==col)||"";
+      const toUpdate=state.projects.filter(p=>p.stage===col);
+      toUpdate.forEach(p=>p.stage=fallback);
+      state.columns.splice(ci,1);
+      await saveMeta("columns",state.columns);
+      await Promise.all(toUpdate.map(p=>saveProject(p)));
+      renderBoard();
     };
   });
 }
@@ -595,18 +722,17 @@ function cardEl(p){
   const el=document.createElement("div");
   el.className="card"; el.draggable=true; el.dataset.id=p.id;
   const du=daysUntil(p.deadline);
-  let dueCls="", dueTxt="";
+  let dueCls="",dueTxt="";
   if(p.deadline){
-    dueCls = du<0?"over":(du<=3?"soon":"");
-    dueTxt = `📅 ${fmtDate(p.deadline)}`;
+    dueCls=du<0?"over":(du<=3?"soon":"");
+    dueTxt=`📅 ${fmtDate(p.deadline)}`;
   }
   const cos=(p.companies||[]).slice(0,2).map(c=>`<span class="tag co">${esc(c)}</span>`).join("");
   const more=(p.companies||[]).length>2?`<span class="tag co">+${p.companies.length-2}</span>`:"";
+  const prioHtml=p.priority?`<span class="tag prio ${esc(p.priority)}">${esc(p.priority)}</span>`:"";
   el.innerHTML=`
     <div class="ttl">${esc(p.title)}</div>
-    <div class="meta">
-      ${cos}${more}
-    </div>
+    <div class="meta">${cos}${more}${prioHtml}</div>
     ${dueTxt?`<div class="due ${dueCls}">${dueTxt}</div>`:""}`;
   el.addEventListener("click",e=>{ if(!el.classList.contains("just-dragged")) openModal(p,false); });
   el.addEventListener("dragstart",e=>{ el.classList.add("dragging"); e.dataTransfer.setData("text/plain",p.id); });
@@ -615,51 +741,57 @@ function cardEl(p){
   return el;
 }
 
-function wireColumn(colEl,body){
-  colEl.addEventListener("dragover",e=>{e.preventDefault(); colEl.classList.add("drag-over");});
-  colEl.addEventListener("dragleave",e=>{ if(!colEl.contains(e.relatedTarget)) colEl.classList.remove("drag-over"); });
-  colEl.addEventListener("drop",e=>{
+function wireColumn(colEl){
+  colEl.addEventListener("dragover",e=>{e.preventDefault();colEl.classList.add("drag-over");});
+  colEl.addEventListener("dragleave",e=>{ if(!colEl.contains(e.relatedTarget))colEl.classList.remove("drag-over"); });
+  colEl.addEventListener("drop",async e=>{
     e.preventDefault(); colEl.classList.remove("drag-over");
     const id=e.dataTransfer.getData("text/plain");
     const p=state.projects.find(x=>x.id===id);
-    if(p){ p.stage=colEl.dataset.col; save(); renderBoard(); renderDue(); }
+    if(p&&p.stage!==colEl.dataset.col){
+      p.stage=colEl.dataset.col;
+      await saveProject(p);
+      renderBoard(); renderDue();
+    }
   });
 }
 
 /* ---------- Modal ---------- */
-let editing=null, isNew=false;
 function newProject(stage){
-  return { id:"p"+Date.now(), title:"", stage:stage||state.columns[0],
-           companies:[], deadline:"", desc:"", objective:"", todos:[] };
+  return { id:"p"+Date.now(), title:"", stage:stage||state.columns[0]||"",
+           companies:[], deadline:"", priority:"", desc:"", objective:"", todos:[] };
 }
+
 function openModal(p,brandNew){
   editing=p; isNew=!!brandNew;
-  $("#m-title").value=p.title;
+  $("#m-title").value=p.title||"";
   $("#m-deadline").value=p.deadline||"";
   $("#m-desc").value=p.desc||"";
   $("#m-obj").value=p.objective||"";
+  $("#m-priority").value=p.priority||"";
   $("#m-status").textContent=p.stage||"—";
   $("#m-sdot").style.background=stageColor(p.stage);
   renderCompanies(); renderTodos();
   $("#overlay").classList.add("open");
   if(brandNew) setTimeout(()=>$("#m-title").focus(),50);
 }
+
 function closeModal(){
-  // commit text fields
   if(editing){
     editing.title=$("#m-title").value.trim()||editing.title||"Untitled project";
     editing.deadline=$("#m-deadline").value;
     editing.desc=$("#m-desc").value;
     editing.objective=$("#m-obj").value;
-    if(isNew && !state.projects.includes(editing)) state.projects.push(editing);
-    save();
+    editing.priority=$("#m-priority").value;
+    if(isNew&&!state.projects.includes(editing)) state.projects.push(editing);
+    saveProject(editing);
   }
   $("#overlay").classList.remove("open");
   editing=null; isNew=false;
   renderBoard(); renderDue(); renderCompanyFilter();
 }
 
-/* companies multi-select with editable dropdown */
+/* ---------- Companies ---------- */
 function renderCompanies(){
   const box=$("#m-companies");
   box.querySelectorAll(".co-tag").forEach(n=>n.remove());
@@ -668,27 +800,34 @@ function renderCompanies(){
     const t=document.createElement("span"); t.className="co-tag";
     t.innerHTML=`${esc(c)} <button title="remove">✕</button>`;
     t.querySelector("button").onclick=()=>{
-      editing.companies=editing.companies.filter(x=>x!==c); save(); renderCompanies();
+      editing.companies=editing.companies.filter(x=>x!==c);
+      scheduleSave(editing); renderCompanies();
     };
     box.insertBefore(t,addWrap);
   });
 }
-function addCompany(name){
+
+async function addCompany(name){
   name=name.trim(); if(!name)return;
-  if(!state.companies.includes(name)) state.companies.push(name);
+  if(!state.companies.includes(name)){
+    state.companies.push(name);
+    await saveMeta("companies",state.companies);
+    renderCompanyFilter();
+  }
   editing.companies=editing.companies||[];
   if(!editing.companies.includes(name)) editing.companies.push(name);
   $("#co-input").value=""; $("#co-suggest").classList.remove("show");
-  save(); renderCompanies(); renderCompanyFilter();
+  scheduleSave(editing); renderCompanies();
 }
+
 function wireCompanyInput(){
   const input=$("#co-input"), sug=$("#co-suggest");
   const refresh=()=>{
     const q=input.value.trim().toLowerCase();
-    const matches=state.companies.filter(c=>c.toLowerCase().includes(q)&&!(editing.companies||[]).includes(c));
+    const matches=state.companies.filter(c=>c.toLowerCase().includes(q)&&!(editing&&editing.companies||[]).includes(c));
     let html=matches.map(c=>`<div data-c="${esc(c)}">${esc(c)}</div>`).join("");
-    if(q && !state.companies.some(c=>c.toLowerCase()===q)) html+=`<div class="new-opt" data-new="1">＋ Create "${esc(input.value.trim())}"</div>`;
-    if(!html){ sug.classList.remove("show"); return; }
+    if(q&&!state.companies.some(c=>c.toLowerCase()===q)) html+=`<div class="new-opt" data-new="1">＋ Create "${esc(input.value.trim())}"</div>`;
+    if(!html){sug.classList.remove("show");return;}
     sug.innerHTML=html; sug.classList.add("show");
     sug.querySelectorAll("[data-c]").forEach(d=>d.onclick=()=>addCompany(d.dataset.c));
     const no=sug.querySelector("[data-new]"); if(no) no.onclick=()=>addCompany(input.value);
@@ -696,13 +835,13 @@ function wireCompanyInput(){
   input.addEventListener("focus",refresh);
   input.addEventListener("input",refresh);
   input.addEventListener("keydown",e=>{
-    if(e.key==="Enter"){e.preventDefault(); if(input.value.trim()) addCompany(input.value);}
-    if(e.key==="Escape") sug.classList.remove("show");
+    if(e.key==="Enter"){e.preventDefault();if(input.value.trim())addCompany(input.value);}
+    if(e.key==="Escape")sug.classList.remove("show");
   });
-  document.addEventListener("click",e=>{ if(!$(".co-add").contains(e.target)) sug.classList.remove("show"); });
+  document.addEventListener("click",e=>{ if(!$(".co-add").contains(e.target))sug.classList.remove("show"); });
 }
 
-/* to-do list */
+/* ---------- To-do list ---------- */
 function renderTodos(){
   const box=$("#m-todos"); box.innerHTML="";
   (editing.todos||[]).forEach((td,i)=>{
@@ -710,115 +849,187 @@ function renderTodos(){
     row.innerHTML=`<input type="checkbox" ${td.d?"checked":""}>
       <input class="tx" value="${esc(td.t)}" placeholder="step…">
       <button class="rm" title="remove">✕</button>`;
-    row.querySelector("input[type=checkbox]").onchange=e=>{td.d=e.target.checked; row.classList.toggle("done",td.d); save();};
-    row.querySelector(".tx").addEventListener("input",e=>{td.t=e.target.value; save();});
-    row.querySelector(".rm").onclick=()=>{editing.todos.splice(i,1); save(); renderTodos();};
+    row.querySelector("input[type=checkbox]").onchange=e=>{td.d=e.target.checked;row.classList.toggle("done",td.d);scheduleSave(editing);};
+    row.querySelector(".tx").addEventListener("input",e=>{td.t=e.target.value;scheduleSave(editing);});
+    row.querySelector(".rm").onclick=()=>{editing.todos.splice(i,1);scheduleSave(editing);renderTodos();};
     box.appendChild(row);
   });
 }
-$("#addTodo").onclick=()=>{ editing.todos=editing.todos||[]; editing.todos.push({t:"",d:false}); renderTodos();
-  const last=$("#m-todos").lastChild; if(last) last.querySelector(".tx").focus(); };
 
-/* deadline / desc / obj live-save */
-["m-deadline","m-desc","m-obj","m-title"].forEach(id=>{
-  $("#"+id).addEventListener("input",()=>{
+$("#addTodo").onclick=()=>{
+  editing.todos=editing.todos||[]; editing.todos.push({t:"",d:false}); renderTodos();
+  const last=$("#m-todos").lastChild; if(last)last.querySelector(".tx").focus();
+};
+
+/* ---------- Live-save modal fields ---------- */
+["m-deadline","m-desc","m-obj","m-title","m-priority"].forEach(id=>{
+  const el=$("#"+id); if(!el)return;
+  el.addEventListener("input",()=>{
     if(!editing)return;
     if(id==="m-deadline")editing.deadline=$("#m-deadline").value;
     if(id==="m-desc")editing.desc=$("#m-desc").value;
     if(id==="m-obj")editing.objective=$("#m-obj").value;
     if(id==="m-title")editing.title=$("#m-title").value;
-    if(isNew && !state.projects.includes(editing)) state.projects.push(editing);
-    isNew=false; save();
+    if(id==="m-priority")editing.priority=$("#m-priority").value;
+    if(isNew&&!state.projects.includes(editing)){state.projects.push(editing);isNew=false;}
+    scheduleSave(editing);
     if(id==="m-deadline")renderDue();
   });
 });
 
-$("#delProj").onclick=()=>{
+/* ---------- Delete project ---------- */
+$("#delProj").onclick=async()=>{
   if(!editing)return;
   if(confirm("Delete this project permanently?")){
-    state.projects=state.projects.filter(p=>p!==editing && p.id!==editing.id);
-    save(); $("#overlay").classList.remove("open"); editing=null;
+    state.projects=state.projects.filter(p=>p!==editing&&p.id!==editing.id);
+    await deleteProject(editing.id);
+    $("#overlay").classList.remove("open"); editing=null;
     renderBoard(); renderDue();
   }
 };
-$("#closeModal").onclick=closeModal;
-$("#overlay").addEventListener("mousedown",e=>{ if(e.target.id==="overlay") closeModal(); });
-document.addEventListener("keydown",e=>{
-  if(e.key==="Escape"){
-    if($("#overlay").classList.contains("open")) closeModal();
-    if($("#coOverlay").classList.contains("open")) $("#coOverlay").classList.remove("open");
-  }
-});
 
-/* ---------- Filter UI ---------- */
+$("#closeModal").onclick=closeModal;
+$("#overlay").addEventListener("mousedown",e=>{if(e.target.id==="overlay")closeModal();});
+
+/* ---------- Filters ---------- */
 function renderCompanyFilter(){
-  const sel=$("#companyFilter"); const cur=filters.company;
-  sel.innerHTML=`<option value="">All companies</option>`+state.companies.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
+  const sel=$("#companyFilter"); if(!sel)return;
+  const cur=filters.company;
+  sel.innerHTML=`<option value="">All</option>`+state.companies.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
   sel.value=cur;
 }
-$("#companyFilter").onchange=e=>{filters.company=e.target.value; renderBoard();};
-$("#search").addEventListener("input",e=>{filters.search=e.target.value; renderBoard();});
+
+$("#companyFilter").onchange=e=>{filters.company=e.target.value;renderBoard();};
+$("#search").addEventListener("input",e=>{filters.search=e.target.value;renderBoard();});
 $("#clearFilters").onclick=()=>{
   filters={search:"",company:""};
   $("#search").value=""; $("#companyFilter").value="";
   renderBoard();
 };
 
-/* ---------- Top buttons ---------- */
-$("#newProjBtn").onclick=()=>openModal(newProject(state.columns[0]||"No status"),true);
-$("#resetBtn").onclick=()=>{
-  if(confirm("Reset the board to the original Notion snapshot? Your local changes will be lost.")){
-    state=structuredClone(SEED); save(); boot();
-  }
-};
+/* ---------- New project ---------- */
+$("#newProjBtn").onclick=()=>openModal(newProject(state.columns[0]||""),true);
 
-/* ---------- Company manager ---------- */
+/* ---------- Category manager ---------- */
 function renderCoManager(){
   const box=$("#coList"); box.innerHTML="";
-  if(state.companies.length===0){ box.innerHTML=`<div class="empty-hint">No companies yet — add one below.</div>`; }
+  if(state.companies.length===0){box.innerHTML=`<div class="empty-hint">No categories yet — add one below.</div>`;return;}
   state.companies.forEach((c,i)=>{
     const row=document.createElement("div"); row.className="todo";
     row.innerHTML=`<input class="tx" value="${esc(c)}" data-i="${i}">
-      <button class="rm" title="delete option">✕</button>`;
+      <button class="rm" title="delete">✕</button>`;
     const inp=row.querySelector(".tx");
-    inp.addEventListener("change",()=>{
+    inp.addEventListener("change",async()=>{
       const old=state.companies[i], val=inp.value.trim();
-      if(!val){ inp.value=old; return; }
-      if(val!==old && state.companies.includes(val)){ alert(`"${val}" already exists.`); inp.value=old; return; }
+      if(!val){inp.value=old;return;}
+      if(val!==old&&state.companies.includes(val)){alert(`"${val}" already exists.`);inp.value=old;return;}
       state.companies[i]=val;
-      state.projects.forEach(p=>{ if(p.companies) p.companies=p.companies.map(x=>x===old?val:x); });
-      save(); renderBoard(); renderCompanyFilter();
+      state.projects.forEach(p=>{if(p.companies)p.companies=p.companies.map(x=>x===old?val:x);});
+      await saveMeta("companies",state.companies);
+      await Promise.all(state.projects.filter(p=>(p.companies||[]).includes(val)).map(p=>saveProject(p)));
+      renderBoard(); renderCompanyFilter();
     });
     inp.addEventListener("keydown",e=>{if(e.key==="Enter")inp.blur();});
-    row.querySelector(".rm").onclick=()=>{
+    row.querySelector(".rm").onclick=async()=>{
       const name=state.companies[i];
       const used=state.projects.filter(p=>(p.companies||[]).includes(name)).length;
-      if(used>0 && !confirm(`"${name}" is used by ${used} project(s). Delete it from the list and remove it from those projects?`)) return;
+      if(used>0&&!confirm(`"${name}" is used by ${used} project(s). Delete it and remove from those projects?`))return;
       state.companies.splice(i,1);
-      state.projects.forEach(p=>{ if(p.companies) p.companies=p.companies.filter(x=>x!==name); });
-      if(filters.company===name) filters.company="";
-      save(); renderCoManager(); renderBoard(); renderCompanyFilter();
+      state.projects.forEach(p=>{if(p.companies)p.companies=p.companies.filter(x=>x!==name);});
+      if(filters.company===name)filters.company="";
+      await saveMeta("companies",state.companies);
+      await Promise.all(state.projects.filter(p=>p.data).map(p=>saveProject(p)));
+      renderCoManager(); renderBoard(); renderCompanyFilter();
     };
     box.appendChild(row);
   });
 }
-function addCoOption(){
-  const inp=$("#coNew"), val=inp.value.trim();
-  if(!val) return;
-  if(state.companies.includes(val)){ alert(`"${val}" already exists.`); return; }
-  state.companies.push(val); inp.value="";
-  save(); renderCoManager(); renderCompanyFilter();
-}
-$("#manageCo").onclick=()=>{ renderCoManager(); $("#coOverlay").classList.add("open"); setTimeout(()=>$("#coNew").focus(),50); };
-$("#closeCo").onclick=()=>$("#coOverlay").classList.remove("open");
-$("#coOverlay").addEventListener("mousedown",e=>{ if(e.target.id==="coOverlay") $("#coOverlay").classList.remove("open"); });
-$("#coNewBtn").onclick=addCoOption;
-$("#coNew").addEventListener("keydown",e=>{ if(e.key==="Enter") addCoOption(); });
 
-/* ---------- Boot ---------- */
-function boot(){ renderDue(); renderCompanyFilter(); renderBoard(); }
-wireCompanyInput();
-boot();
+async function addCoOption(){
+  const inp=$("#coNew"), val=inp.value.trim();
+  if(!val)return;
+  if(state.companies.includes(val)){alert(`"${val}" already exists.`);return;}
+  state.companies.push(val); inp.value="";
+  await saveMeta("companies",state.companies);
+  renderCoManager(); renderCompanyFilter();
+}
+
+$("#manageCo").onclick=()=>{renderCoManager();$("#coOverlay").classList.add("open");setTimeout(()=>$("#coNew").focus(),50);};
+$("#closeCo").onclick=()=>$("#coOverlay").classList.remove("open");
+$("#coOverlay").addEventListener("mousedown",e=>{if(e.target.id==="coOverlay")$("#coOverlay").classList.remove("open");});
+$("#coNewBtn").onclick=addCoOption;
+$("#coNew").addEventListener("keydown",e=>{if(e.key==="Enter")addCoOption();});
+
+
+
+/* ---------- Keyboard ---------- */
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){
+    if($("#overlay").classList.contains("open"))closeModal();
+    if($("#coOverlay").classList.contains("open"))$("#coOverlay").classList.remove("open");
+  }
+});
+
+/* ============================================================
+   SETUP SCREEN
+   ============================================================ */
+$("#setup-save").onclick=async()=>{
+  const url=$("#setup-url").value.trim();
+  const key=$("#setup-key").value.trim();
+  const errEl=$("#setup-error");
+  errEl.style.display="none";
+  if(!url||!key){errEl.textContent="Both fields are required.";errEl.style.display="block";return;}
+  $("#setup-save").textContent="Connecting…";
+  try{
+    await initSupabase(url,key);
+    saveCreds(url,key);
+    await boot(url,key);
+  }catch(e){
+    errEl.textContent="Connection failed: "+(e.message||e);
+    errEl.style.display="block";
+    $("#setup-save").textContent="Connect board";
+  }
+};
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+async function boot(url, key){
+  const ls=$("#loading-screen"), ss=$("#setup-screen"), app=$("#app");
+  ls.style.display="flex"; ss.classList.remove("visible"); app.style.display="none";
+  $("#load-txt").textContent="Loading board data…";
+
+  try{
+    if(!supabase) await initSupabase(url, key);
+    await loadFromDB();
+    applyMeta();
+    renderDue();
+    renderCompanyFilter();
+    renderBoard();
+    wireCompanyInput();
+    wireHeaderEdits();
+    setupRealtime();
+    ls.classList.add("fade-out");
+    setTimeout(()=>{ls.style.display="none";},420);
+    app.style.display="block";
+    toast("🌿 Board loaded");
+  }catch(err){
+    console.error("Boot error", err);
+    ls.style.display="none";
+    const errEl=$("#load-txt");
+    errEl.textContent="❌ Connection error: "+(err.message||err);
+    ls.style.display="flex";
+  }
+}
+
+/* ---------- Hardcoded credentials (embedded — no setup screen needed) ---------- */
+const SUPABASE_URL = "https://kpxjxbtoiezhxfqdvpnj.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtweGp4YnRvaWV6aHhmcWR2cG5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzNjI4ODQsImV4cCI6MjA5NTkzODg4NH0.xsc-6LNyS0nVkSaYCHw73vYJfcI0WlMQDgs8v4U95HM";
+
+/* ---------- Entry point ---------- */
+(async()=>{
+  await boot(SUPABASE_URL, SUPABASE_KEY);
+})();
 </script>
 </body>
 </html>
