@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wildbird / Monstera — Project Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e1311;
+  --bg2:#141b18;
+  --panel:#1a231f;
+  --panel2:#202b26;
+  --line:#2c3a33;
+  --ink:#e8efe9;
+  --ink-soft:#a8b8af;
+  --muted:#7d8f85;
+  --leaf:#6fae7a;
+  --leaf-deep:#3f7a52;
+  --gold:#d6a85b;
+  --red:#d97a6c;
+  --yellow:#d9bf6c;
+  --green:#7fb98a;
+  --shadow:0 18px 40px -18px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(63,122,82,.18), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(214,168,91,.10), transparent 55%),
+    var(--bg);
+  color:var(--ink);
+  font-family:'Outfit',sans-serif;
+  font-weight:400;
+  -webkit-font-smoothing:antialiased;
+  padding:28px clamp(16px,3vw,46px) 80px;
+}
+::-webkit-scrollbar{height:11px;width:11px}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:20px}
+::-webkit-scrollbar-track{background:transparent}
+
+h1,h2,h3,.serif{font-family:'Fraunces',serif}
+
+/* ---------- Header ---------- */
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:22px}
+.brand{display:flex;align-items:center;gap:14px}
+.brand .mark{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;
+  background:linear-gradient(150deg,var(--leaf),var(--leaf-deep));font-size:22px;box-shadow:var(--shadow)}
+.brand h1{font-size:clamp(24px,3vw,34px);font-weight:600;letter-spacing:-.5px;line-height:1}
+.brand p{color:var(--muted);font-size:13px;margin-top:5px}
+.head-actions{display:flex;gap:10px}
+.btn{cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink);
+  font-family:'Outfit';font-size:13px;font-weight:500;padding:9px 15px;border-radius:10px;transition:.18s;display:inline-flex;align-items:center;gap:7px}
+.btn:hover{border-color:var(--leaf);background:var(--panel2);transform:translateY(-1px)}
+.btn.primary{background:linear-gradient(150deg,var(--leaf),var(--leaf-deep));border:none;color:#0c130f;font-weight:600}
+.btn.ghost{background:transparent}
+
+/* ---------- Due-date boxes ---------- */
+.due-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-bottom:18px}
+.due-card{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:16px;padding:18px 20px;
+  background:linear-gradient(135deg,var(--panel),var(--bg2));box-shadow:var(--shadow)}
+.due-card .label{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:9px}
+.due-card .big{font-family:'Fraunces';font-size:26px;font-weight:600;line-height:1.05}
+.due-card .sub{margin-top:7px;color:var(--leaf);font-size:14px;font-weight:500}
+.due-card .pill{position:absolute;top:16px;right:16px;font-size:11px;padding:3px 9px;border-radius:20px;background:var(--panel2);border:1px solid var(--line);color:var(--ink-soft)}
+.due-card.alarm{border-color:rgba(217,122,108,.5)}
+.due-card.alarm .big{color:var(--red)}
+.due-card .leaf-deco{position:absolute;right:-20px;bottom:-26px;font-size:96px;opacity:.05;transform:rotate(-12deg);pointer-events:none}
+
+/* ---------- Controls (search + filters) ---------- */
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:22px;
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.search-wrap{position:relative;flex:1 1 260px;min-width:200px}
+.search-wrap svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);opacity:.5}
+.search-wrap input{width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--ink);
+  border-radius:10px;padding:11px 12px 11px 38px;font-family:'Outfit';font-size:14px;outline:none;transition:.18s}
+.search-wrap input:focus{border-color:var(--leaf)}
+.filter-group{display:flex;align-items:center;gap:7px}
+.filter-group label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted)}
+.chip{cursor:pointer;font-size:12.5px;padding:7px 13px;border-radius:20px;border:1px solid var(--line);
+  background:var(--bg2);color:var(--ink-soft);transition:.16s;font-weight:500}
+.chip:hover{border-color:var(--leaf)}
+.chip.active{background:var(--leaf);color:#0c130f;border-color:var(--leaf);font-weight:600}
+.chip.active.p-High{background:var(--red);border-color:var(--red);color:#1a0f0d}
+.chip.active.p-Medium{background:var(--yellow);border-color:var(--yellow);color:#1a160d}
+.chip.active.p-Low{background:var(--green);border-color:var(--green);color:#0d1a0f}
+.company-filter{position:relative}
+.company-filter select{appearance:none;cursor:pointer;background:var(--bg2);border:1px solid var(--line);
+  color:var(--ink);border-radius:20px;padding:7px 30px 7px 13px;font-family:'Outfit';font-size:12.5px;outline:none}
+.company-filter::after{content:"▾";position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--muted);font-size:11px}
+.clearf{font-size:12px;color:var(--muted);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.clearf:hover{color:var(--ink)}
+
+/* ---------- Board ---------- */
+.board{display:flex;gap:16px;align-items:flex-start;overflow-x:auto;padding-bottom:18px}
+.col{flex:0 0 290px;background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);
+  border-radius:16px;display:flex;flex-direction:column;max-height:calc(100vh - 60px)}
+.col.drag-over{border-color:var(--leaf);box-shadow:0 0 0 2px rgba(111,174,122,.3) inset}
+.col-head{display:flex;align-items:center;gap:9px;padding:14px 15px 12px;border-bottom:1px solid var(--line)}
+.col-head .dot{width:9px;height:9px;border-radius:50%;background:var(--leaf);flex:none}
+.col-head .cname{flex:1;font-family:'Outfit';font-weight:600;font-size:14px;background:transparent;border:none;
+  color:var(--ink);outline:none;border-radius:6px;padding:3px 5px;transition:.15s;min-width:0}
+.col-head .cname:hover{background:var(--bg2)}
+.col-head .cname:focus{background:var(--bg2);box-shadow:0 0 0 1px var(--leaf)}
+.col-head .count{font-size:12px;color:var(--muted);background:var(--bg);padding:2px 9px;border-radius:20px}
+.col-head .del-col{cursor:pointer;color:var(--muted);font-size:15px;opacity:0;transition:.15s;border:none;background:none}
+.col:hover .del-col{opacity:.6}
+.col-head .del-col:hover{opacity:1;color:var(--red)}
+.col-body{padding:11px;overflow-y:auto;flex:1;min-height:60px}
+
+/* ---------- Cards ---------- */
+.card{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:10px;
+  cursor:grab;transition:.16s;position:relative}
+.card:hover{border-color:var(--leaf);transform:translateY(-2px);box-shadow:var(--shadow)}
+.card.dragging{opacity:.4;cursor:grabbing}
+.card .ttl{font-weight:600;font-size:14.5px;line-height:1.25;margin-bottom:9px;padding-right:4px}
+.card .meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tag{font-size:10.5px;padding:3px 8px;border-radius:6px;font-weight:500;letter-spacing:.2px}
+.tag.prio{display:inline-flex;align-items:center;gap:5px}
+.tag.prio::before{content:"";width:6px;height:6px;border-radius:50%}
+.tag.prio.High{background:rgba(217,122,108,.16);color:var(--red)}
+.tag.prio.High::before{background:var(--red)}
+.tag.prio.Medium{background:rgba(217,191,108,.14);color:var(--yellow)}
+.tag.prio.Medium::before{background:var(--yellow)}
+.tag.prio.Low{background:rgba(127,185,138,.14);color:var(--green)}
+.tag.prio.Low::before{background:var(--green)}
+.tag.co{background:var(--bg);color:var(--ink-soft);border:1px solid var(--line)}
+.card .due{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);margin-top:9px}
+.card .due.soon{color:var(--gold)}
+.card .due.over{color:var(--red)}
+.add-card{width:100%;text-align:left;background:transparent;border:1px dashed var(--line);color:var(--muted);
+  border-radius:10px;padding:9px 12px;font-family:'Outfit';font-size:13px;cursor:pointer;transition:.15s}
+.add-card:hover{border-color:var(--leaf);color:var(--leaf)}
+.add-col{flex:0 0 60px;align-self:stretch;background:transparent;border:1px dashed var(--line);border-radius:16px;
+  color:var(--muted);font-size:26px;cursor:pointer;transition:.15s;min-height:120px}
+.add-col:hover{border-color:var(--leaf);color:var(--leaf);background:var(--panel)}
+
+/* ---------- Modal ---------- */
+.overlay{position:fixed;inset:0;background:rgba(5,8,7,.72);backdrop-filter:blur(4px);display:none;
+  align-items:flex-start;justify-content:center;z-index:50;padding:40px 16px;overflow-y:auto}
+.overlay.open{display:flex}
+.modal{width:min(640px,100%);background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);
+  border-radius:20px;box-shadow:0 40px 80px -20px rgba(0,0,0,.8);overflow:hidden;animation:pop .22s ease}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+.modal-head{padding:20px 24px 16px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:flex-start}
+.modal-head input.title-in{flex:1;font-family:'Fraunces';font-weight:600;font-size:23px;background:transparent;
+  border:none;color:var(--ink);outline:none;border-radius:8px;padding:4px 6px}
+.modal-head input.title-in:focus{background:var(--bg2)}
+.modal-head .x{cursor:pointer;border:none;background:var(--bg2);color:var(--ink);width:34px;height:34px;border-radius:9px;font-size:17px;transition:.15s;flex:none}
+.modal-head .x:hover{background:var(--red);color:#1a0f0d}
+.modal-body{padding:8px 24px 24px}
+.field{margin-top:18px}
+.field > label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:1.6px;color:var(--muted);margin-bottom:8px}
+.field input[type=text],.field input[type=date],.field textarea,.field select{
+  width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--ink);border-radius:10px;
+  padding:11px 13px;font-family:'Outfit';font-size:14px;outline:none;transition:.16s}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--leaf)}
+.field textarea{resize:vertical;min-height:74px;line-height:1.5}
+.field input[type=date]{color-scheme:dark;cursor:pointer}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.companies-box{display:flex;flex-wrap:wrap;gap:7px;align-items:center;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:9px}
+.co-tag{display:inline-flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:4px 8px;font-size:12.5px}
+.co-tag button{border:none;background:none;color:var(--muted);cursor:pointer;font-size:13px;line-height:1}
+.co-tag button:hover{color:var(--red)}
+.co-add{position:relative}
+.co-add input{background:transparent;border:none;color:var(--ink);outline:none;font-family:'Outfit';font-size:13px;min-width:120px;padding:4px}
+.co-suggest{position:absolute;top:110%;left:0;background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  z-index:5;min-width:180px;max-height:180px;overflow-y:auto;box-shadow:var(--shadow);display:none}
+.co-suggest.show{display:block}
+.co-suggest div{padding:9px 12px;cursor:pointer;font-size:13px}
+.co-suggest div:hover,.co-suggest div.hl{background:var(--panel2);color:var(--leaf)}
+.co-suggest .new-opt{color:var(--leaf);border-top:1px solid var(--line)}
+.status-line{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:11px 13px;font-size:14px}
+.status-line .sdot{width:9px;height:9px;border-radius:50%;background:var(--leaf)}
+.status-line .hint{margin-left:auto;font-size:11px;color:var(--muted)}
+/* to-do list */
+.todos{display:flex;flex-direction:column;gap:7px}
+.todo{display:flex;align-items:flex-start;gap:10px;background:var(--bg2);border:1px solid var(--line);border-radius:9px;padding:9px 11px}
+.todo input[type=checkbox]{appearance:none;width:17px;height:17px;border:1.5px solid var(--muted);border-radius:5px;cursor:pointer;flex:none;margin-top:1px;position:relative;transition:.15s}
+.todo input[type=checkbox]:checked{background:var(--leaf);border-color:var(--leaf)}
+.todo input[type=checkbox]:checked::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;color:#0c130f;font-size:11px;font-weight:700}
+.todo .tx{flex:1;background:transparent;border:none;color:var(--ink);outline:none;font-family:'Outfit';font-size:13.5px;line-height:1.4}
+.todo.done .tx{text-decoration:line-through;color:var(--muted)}
+.todo .rm{border:none;background:none;color:var(--muted);cursor:pointer;font-size:14px;opacity:0;transition:.15s}
+.todo:hover .rm{opacity:.6}
+.todo .rm:hover{opacity:1;color:var(--red)}
+.add-todo{align-self:flex-start;background:transparent;border:none;color:var(--leaf);cursor:pointer;font-family:'Outfit';font-size:13px;padding:5px 0;font-weight:500}
+.modal-foot{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-top:1px solid var(--line);background:var(--bg2)}
+.del-proj{color:var(--red);background:none;border:none;cursor:pointer;font-size:13px;font-family:'Outfit'}
+.del-proj:hover{text-decoration:underline}
+.save-note{font-size:12px;color:var(--muted)}
+footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
+.empty-hint{color:var(--muted);font-size:12.5px;text-align:center;padding:18px 6px;font-style:italic}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <div class="mark">🌿</div>
+    <div>
+      <h1>Project Board</h1>
+      <p>EA Workspace</p>
+    </div>
+  </div>
+  <div class="head-actions">
+    <button class="btn ghost" id="resetBtn" title="Reset to the original Notion snapshot">↺ Reset data</button>
+    <button class="btn primary" id="newProjBtn">＋ New project</button>
+  </div>
+</header>
+
+<div class="due-row" id="dueRow"></div>
+
+<div class="controls">
+  <div class="search-wrap">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+    <input type="text" id="search" placeholder="Search projects, descriptions, objectives, to-do's…">
+  </div>
+  <div class="filter-group">
+    <label>Company</label>
+    <div class="company-filter"><select id="companyFilter"><option value="">All</option></select></div>
+    <button class="btn ghost" id="manageCo" title="Edit the company options" style="padding:7px 11px;font-size:12px">✎ Edit</button>
+  </div>
+  <span class="clearf" id="clearFilters">clear</span>
+</div>
+
+<div class="board" id="board"></div>
+
+<!-- Modal -->
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal">
+    <div class="modal-head">
+      <input class="title-in" id="m-title" placeholder="Project name">
+      <button class="x" id="closeModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Company</label>
+        <div class="companies-box" id="m-companies">
+          <div class="co-add">
+            <input type="text" id="co-input" placeholder="+ add / type to search" autocomplete="off">
+            <div class="co-suggest" id="co-suggest"></div>
+          </div>
+        </div>
+      </div>
+      <div class="two">
+        <div class="field">
+          <label>Deadline</label>
+          <input type="date" id="m-deadline">
+        </div>
+        <div class="field">
+          <label>Status (mirrors the stage)</label>
+          <div class="status-line"><span class="sdot" id="m-sdot"></span><span id="m-status">—</span><span class="hint">drag the card to change</span></div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Description</label>
+        <textarea id="m-desc" placeholder="What is this project about?"></textarea>
+      </div>
+      <div class="field">
+        <label>Objective — expected final result</label>
+        <textarea id="m-obj" placeholder="What does 'done' look like?"></textarea>
+      </div>
+      <div class="field">
+        <label>To-do's — step by step to reach the objective</label>
+        <div class="todos" id="m-todos"></div>
+        <button class="add-todo" id="addTodo">＋ add step</button>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="del-proj" id="delProj">Delete project</button>
+      <span class="save-note">Changes save automatically</span>
+    </div>
+  </div>
+</div>
+
+<footer>Drag cards between stages · double-click a stage name to rename · everything saves to this file's local storage in your browser.</footer>
+
+<!-- Company manager -->
+<div class="overlay" id="coOverlay">
+  <div class="modal" style="width:min(460px,100%)">
+    <div class="modal-head">
+      <input class="title-in" value="Companies" readonly style="cursor:default">
+      <button class="x" id="closeCo">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--muted);font-size:12.5px;margin:6px 0 12px">Rename or delete the options that appear in every project's Company dropdown. Renaming updates all projects; deleting removes the option from projects too.</p>
+      <div class="todos" id="coList"></div>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <input type="text" id="coNew" placeholder="New company name…" style="flex:1;background:var(--bg2);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:11px 13px;font-family:'Outfit';font-size:14px;outline:none">
+        <button class="btn primary" id="coNewBtn">＋ Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   DATA  — seeded from the Notion "Projects" database snapshot.
+   After first load, your edits live in your browser (localStorage).
+   Use "Reset data" to return to this seed.
+   ============================================================ */
+const SEED = {
+  // Stage columns. You can rename / add / delete these freely in the UI.
+  columns: ["Long-term","No status","In Progress","Paused","Completed"],
+  // Company dropdown options (editable — add your own in any project).
+  companies: ["Wildbird","Island Nerve Institute","Banyan Systems","Monstera Practice Co","Upper Cervical Clinic","Tribe Z","Cross-cutting"],
+  projects: [
+    { id:"p1", title:"Peptide Patient Workflow — Go High Level", stage:"In Progress", priority:"High",
+      companies:["Island Nerve Institute"], deadline:"2026-05-26",
+      desc:"Dedicated peptide pipeline in GHL, fully separate from the chiro 'sore painfree' pipeline. Cold weight-loss/aesthetic audience, sales-forward tone. Wildbird chiro leads still need a live phone call to book; peptide side runs automated SMS + Mia AI.",
+      objective:"A fully functional, white-label-ready peptide pipeline in GHL with automation moving leads stage-to-stage with no manual intervention. Live and approved by Dr. Jo.",
+      todos:[
+        {t:"Create new 'Peptide' pipeline in GHL",d:true},
+        {t:"Regain access to all GHL sub-accounts",d:true},
+        {t:"Duplicate chiro workflows and adapt for peptide focus",d:false},
+        {t:"Build follow-up sequence: days 3, 5, 7, 10",d:false},
+        {t:"Build 10-min automated trigger after call task checked off",d:false},
+        {t:"Integrate & train Mia AI bot",d:false},
+        {t:"Test objection responses with Claude",d:false},
+        {t:"Set custom values for white-label clinic name",d:false},
+        {t:"Resolve errors, self-test, get Dr. Jo's publish approval",d:false}
+      ]},
+    { id:"p2", title:"Generic Clinic Workflow — Go High Level", stage:"In Progress", priority:"High",
+      companies:["Cross-cutting"], deadline:"",
+      desc:"Second, generic version of the GHL workflow (decided 05/26) — Meta-ads-safe, not peptide-specific, reusable across clinics. Spun off so the peptide workflow can stay as-is.",
+      objective:"A clean, white-label generic clinic pipeline that complies with Meta ad policy and can be cloned per clinic.",
+      todos:[{t:"Clone base structure from peptide workflow",d:false},{t:"Strip peptide-specific messaging",d:false},{t:"Make Meta-ad-policy safe",d:false},{t:"Template custom values for any clinic",d:false}]},
+    { id:"p3", title:"Banyan Systems Workflow — Go High Level", stage:"In Progress", priority:"Medium",
+      companies:["Banyan Systems"], deadline:"",
+      desc:"GHL workflow build/tweaks for the Banyan Systems side of operations.",
+      objective:"Working GHL automation aligned to Banyan's marketing needs.",
+      todos:[{t:"Scope requirements with Pierce",d:false},{t:"Build pipeline & automations",d:false}]},
+    { id:"p4", title:"Island Nerve Institute — GHL Workflow Tweaks", stage:"In Progress", priority:"Medium",
+      companies:["Island Nerve Institute"], deadline:"",
+      desc:"Adjustments and refinements to the existing Island Nerve Institute GHL workflows.",
+      objective:"Optimized neuropathy lead workflow running cleanly in GHL.",
+      todos:[{t:"Audit current workflow",d:false},{t:"Apply tweaks",d:false},{t:"Verify with Karina (leads)",d:false}]},
+    { id:"p5", title:"Monstera Practice Co — Fundability + Website", stage:"Paused", priority:"Medium",
+      companies:["Monstera Practice Co"], deadline:"",
+      desc:"Build business credit for the MSO via Fundability: complete the Fundability profile, stand up a basic Lovable website (required for credit-building), and create a Monstera-branded Google Workspace email. Neil is the Fundability contact.",
+      objective:"Monstera set up to build business credit — Fundability filled in, public website live, branded email created.",
+      todos:[
+        {t:"Access Fundability dashboard",d:false},
+        {t:"Review entity-documents folder from Dr. Jo",d:false},
+        {t:"Fill in everything possible on Fundability",d:false},
+        {t:"Get Lovable access & build basic Monstera site",d:false},
+        {t:"Wait for Dr. Jo's mission/vision content",d:false},
+        {t:"Create Monstera-branded email for Dr. Jo",d:false}
+      ]},
+    { id:"p6", title:"Dr. Jo Email Consolidation", stage:"In Progress", priority:"Medium",
+      companies:["Cross-cutting"], deadline:"",
+      desc:"Merge Dr. Jo's 5 email addresses into one Gmail inbox via 'Send As', keeping a distinct signature per sending identity.",
+      objective:"One inbox to manage, with correct per-sender signatures when replying as each address.",
+      todos:[{t:"Set up 'Send As' for each address",d:false},{t:"Build per-sender signatures",d:false},{t:"Test send/reply identity",d:false}]},
+    { id:"p7", title:"Inbox Triage System", stage:"In Progress", priority:"Medium",
+      companies:["Cross-cutting"], deadline:"",
+      desc:"Gmail automation (Google Apps Script) that archives '2. Waiting On' labeled emails and restores them to the inbox on reply. Must run from Dr. Jo's own account, not delegated access.",
+      objective:"A hands-off triage script keeping the inbox clean and surfacing replies automatically.",
+      todos:[{t:"Finalize Apps Script logic",d:false},{t:"Deploy from Dr. Jo's own account",d:false},{t:"Monitor for misfires",d:false}]},
+    { id:"p8", title:"Patient Transition Email — Wildbird", stage:"In Progress", priority:"High",
+      companies:["Wildbird"], deadline:"2026-06-03",
+      desc:"Patient-facing email announcing Dr. Jo's departure / transition. Targeting June 3rd. Awaiting Dr. Jo's approval.",
+      objective:"Approved, warm transition email sent to patients on/around June 3.",
+      todos:[{t:"Draft email copy",d:true},{t:"Get Dr. Jo's approval",d:false},{t:"Schedule/send for Jun 3",d:false}]},
+    { id:"p9", title:"Patient Email — Dr. Jo's Departure Announcement", stage:"In Progress", priority:"High",
+      companies:["Wildbird"], deadline:"2026-06-03",
+      desc:"Formal departure announcement to the patient base, coordinated with the transition email.",
+      objective:"Clear, approved announcement delivered on schedule (Jun 3, 2026).",
+      todos:[{t:"Align messaging with transition email",d:false},{t:"Final approval",d:false}]},
+    { id:"p10", title:"Center Spread — Wildbird", stage:"Paused", priority:"Medium",
+      companies:["Wildbird"], deadline:"",
+      desc:"Print center-spread piece for Wildbird. Separate from the ad video. Waiting on Dr. Robyn's photos and copy direction.",
+      objective:"Finished center-spread layout ready for print.",
+      todos:[{t:"Collect Dr. Robyn's photos",d:false},{t:"Get copy direction",d:false},{t:"Lay out spread",d:false}]},
+    { id:"p11", title:"Wildbird Advertising Video", stage:"Paused", priority:"Medium",
+      companies:["Wildbird","Banyan Systems"], deadline:"",
+      desc:"New Wildbird ad video. Pierce is responsible for the project — Pedro does not need to follow up for now. EDS / hypermobility positioning (Dr. Robyn's specialty).",
+      objective:"Produced Wildbird ad video reflecting the EDS/hypermobility specialty hub positioning.",
+      todos:[{t:"Pierce owns filming dates",d:false},{t:"Define distribution channels",d:false}]},
+    { id:"p12", title:"GoHighLevel Mastery", stage:"In Progress", priority:"Medium",
+      companies:["Cross-cutting"], deadline:"",
+      desc:"Ongoing skill-building in GoHighLevel so Pedro can own CRM/marketing automation across the clinics.",
+      objective:"Confident, independent command of GHL pipelines, workflows, and white-labeling.",
+      todos:[{t:"Work through GHL training",d:false},{t:"Apply learnings to live workflows",d:false}]},
+    { id:"p13", title:"Sales Scripts & Training — Dr. Ana", stage:"In Progress", priority:"Medium",
+      companies:["Wildbird"], deadline:"",
+      desc:"Develop sales scripts ('Scripts de Vendas') and training material for Dr. Ana (Associate Chiropractor).",
+      objective:"Dr. Ana equipped with effective sales scripts and onboarding/training resources.",
+      todos:[{t:"Draft sales scripts",d:false},{t:"Build training material",d:false},{t:"Review with Dr. Jo / Dr. Ana",d:false}]},
+    { id:"p14", title:"Leads & Team Supervision", stage:"In Progress", priority:"Medium",
+      companies:["Cross-cutting"], deadline:"",
+      desc:"Umbrella project for recurring operations — supervising leads handling (Karina / Kailani) and team coordination. Individual recurring tasks live in the Tasks DB.",
+      objective:"Smooth, monitored lead handling and front-desk supervision.",
+      todos:[{t:"Monitor Karina (leads/sales)",d:false},{t:"Support Kailani (front desk)",d:false}]},
+    { id:"p15", title:"Daily Meeting Cadence & Agenda Discipline", stage:"In Progress", priority:"Low",
+      companies:["Cross-cutting"], deadline:"",
+      desc:"Maintain the daily Dr. Jo meeting rhythm and agenda discipline. Dr. Jo's admin days are Mondays and Thursdays. Note: Dr. Jo picks up Riley Wed 2:30 PM HST.",
+      objective:"Consistent, well-run daily meetings with clear agendas and follow-through.",
+      todos:[{t:"Keep agenda doc updated",d:false},{t:"Record & transcribe meetings",d:false}]},
+    { id:"p16", title:"ChiroTouch Onboarding", stage:"In Progress", priority:"Low",
+      companies:["Wildbird"], deadline:"",
+      desc:"Get up to speed on ChiroTouch practice-management software.",
+      objective:"Working proficiency in ChiroTouch for practice operations.",
+      todos:[{t:"Complete onboarding modules",d:false}]},
+    { id:"p17", title:"Sales Scripts — General", stage:"In Progress", priority:"Low",
+      companies:["Cross-cutting"], deadline:"",
+      desc:"General sales-script development beyond Dr. Ana's set.",
+      objective:"Reusable sales scripts for the team.",
+      todos:[{t:"Draft general scripts",d:false}]},
+    { id:"p18", title:"Peptides Flyer", stage:"In Progress", priority:"Medium",
+      companies:["Island Nerve Institute"], deadline:"",
+      desc:"Marketing flyer for the peptide program.",
+      objective:"Finished, on-brand peptides flyer ready to distribute.",
+      todos:[{t:"Draft copy",d:false},{t:"Design layout",d:false},{t:"Dr. Jo approval",d:false}]},
+    { id:"p19", title:"Visitor Card — Dr. Jo Eddins", stage:"In Progress", priority:"Low",
+      companies:["Wildbird"], deadline:"",
+      desc:"Visitor/business card design for Dr. Jo.",
+      objective:"Print-ready visitor card.",
+      todos:[{t:"Design card",d:false},{t:"Approve & order",d:false}]},
+    { id:"p20", title:"LeatherPro Hawaii — Chiro Table Reupholstering", stage:"In Progress", priority:"Low",
+      companies:["Wildbird"], deadline:"",
+      desc:"Coordinate reupholstering of chiropractic tables with Phil at LeatherPro Hawaii.",
+      objective:"Tables reupholstered and back in service.",
+      todos:[{t:"Get quote from Phil",d:false},{t:"Schedule the work",d:false}]},
+    { id:"p21", title:"Contractor Setup & Payment Agreement — Pedro", stage:"In Progress", priority:"Low",
+      companies:["Cross-cutting"], deadline:"",
+      desc:"Pedro's contractor setup and payment agreement. Wise for receipt; formalizing a Brazilian business entity for invoicing is intentionally delayed.",
+      objective:"Clear, documented payment arrangement in place.",
+      todos:[{t:"Confirm payment via Wise",d:false},{t:"Defer Brazilian entity invoicing",d:true}]},
+    { id:"p22", title:"Pedro — Intro Video for the Team", stage:"In Progress", priority:"Low",
+      companies:["Cross-cutting"], deadline:"",
+      desc:"Short introduction video so the team gets to know Pedro.",
+      objective:"Recorded intro video shared with the team.",
+      todos:[{t:"Script intro",d:false},{t:"Record & share",d:false}]},
+    { id:"p23", title:"EA Onboarding & Mindset", stage:"In Progress", priority:"Low",
+      companies:["Cross-cutting"], deadline:"",
+      desc:"Pedro's overall EA onboarding, systems setup, and working-relationship mindset with Dr. Jo.",
+      objective:"Fully ramped EA with all core systems running.",
+      todos:[{t:"Stand up core EA systems",d:false}]},
+    { id:"p24", title:"MSO Consolidation — Monstera", stage:"Paused", priority:"Medium",
+      companies:["Monstera Practice Co"], deadline:"",
+      desc:"Consolidate Wildbird, Island Nerve, and the Upper Cervical clinic under Monstera — phone lines, payroll, hiring, banking, and pulling clinic domains under the Monstera Google org (summer task).",
+      objective:"Clinics administratively unified under the Monstera MSO.",
+      todos:[{t:"Map current admin setup per clinic",d:false},{t:"Plan phone/payroll/banking consolidation",d:false},{t:"Pull domains under Monstera Google org (summer)",d:false}]},
+    { id:"p25", title:"MacBook Setup", stage:"Completed", priority:"Low",
+      companies:["Cross-cutting"], deadline:"",
+      desc:"Work MacBook procurement and setup.",
+      objective:"Working, configured MacBook for the role.",
+      todos:[{t:"Set up MacBook",d:true}]}
+  ]
+};
+
+/* ---------- State / persistence ---------- */
+const LS_KEY = "wildbird_kanban_v1";
+let state = load();
+
+function load(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return structuredClone(SEED);
+}
+function save(){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){}
+}
+
+/* ---------- Filters ---------- */
+let filters = { search:"", company:"" };
+
+/* ---------- Helpers ---------- */
+const $ = s=>document.querySelector(s);
+const fmtDate = iso=>{
+  if(!iso) return null;
+  const d = new Date(iso+"T00:00:00");
+  return d.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});
+};
+const daysUntil = iso=>{
+  if(!iso) return null;
+  const t=new Date(iso+"T00:00:00"), n=new Date(); n.setHours(0,0,0,0);
+  return Math.round((t-n)/86400000);
+};
+const stageColor = stage=>{
+  const map={"In Progress":"var(--yellow)","Completed":"var(--green)","Paused":"var(--muted)","Blocked":"var(--red)","Long-term":"var(--leaf)"};
+  return map[stage]||"var(--leaf)";
+};
+function projVisible(p){
+  if(filters.company && !(p.companies||[]).includes(filters.company)) return false;
+  if(filters.search){
+    const q=filters.search.toLowerCase();
+    const hay=[p.title,p.desc,p.objective,...(p.companies||[]),...(p.todos||[]).map(t=>t.t)].join(" ").toLowerCase();
+    if(!hay.includes(q)) return false;
+  }
+  return true;
+}
+
+/* ---------- Due-date banner ---------- */
+function renderDue(){
+  const row=$("#dueRow");
+  const withDates=state.projects
+    .filter(p=>p.deadline && p.stage!=="Completed")
+    .sort((a,b)=>a.deadline.localeCompare(b.deadline));
+  const next=withDates[0];
+  let html="";
+  if(next){
+    const du=daysUntil(next.deadline);
+    const alarm = du!==null && du<=3;
+    const when = du<0?`${Math.abs(du)} day${Math.abs(du)!==1?"s":""} overdue`
+               : du===0?"due today" : du===1?"due tomorrow" : `in ${du} days`;
+    html+=`<div class="due-card ${alarm?'alarm':''}">
+      <span class="pill">${when}</span>
+      <div class="label">⏱ Next due date</div>
+      <div class="big">${fmtDate(next.deadline)}</div>
+      <div class="sub">${esc(next.title)}</div>
+      <div class="leaf-deco">🌿</div>
+    </div>`;
+  }else{
+    html+=`<div class="due-card"><div class="label">⏱ Next due date</div><div class="big">No deadlines set</div><div class="sub">Add a deadline to a project to see it here</div><div class="leaf-deco">🌿</div></div>`;
+  }
+  // small stat card
+  const active=state.projects.filter(p=>p.stage!=="Completed").length;
+  html+=`<div class="due-card">
+    <div class="label">📊 At a glance</div>
+    <div class="big">${active} active</div>
+    <div class="sub">${state.projects.length} total projects</div>
+    <div class="leaf-deco">📌</div>
+  </div>`;
+  row.innerHTML=html;
+}
+
+function esc(s){return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+/* ---------- Board ---------- */
+function renderBoard(){
+  const board=$("#board");
+  board.innerHTML="";
+  state.columns.forEach((col,ci)=>{
+    const colEl=document.createElement("div");
+    colEl.className="col";
+    colEl.dataset.col=col;
+    const projs=state.projects.filter(p=>p.stage===col && projVisible(p));
+    colEl.innerHTML=`
+      <div class="col-head">
+        <span class="dot" style="background:${stageColor(col)}"></span>
+        <input class="cname" value="${esc(col)}" data-ci="${ci}" spellcheck="false">
+        <span class="count">${projs.length}</span>
+        <button class="del-col" title="Delete stage" data-delcol="${ci}">✕</button>
+      </div>
+      <div class="col-body" data-col="${col}"></div>`;
+    const body=colEl.querySelector(".col-body");
+    if(projs.length===0) body.innerHTML=`<div class="empty-hint">drop projects here</div>`;
+    projs.forEach(p=>body.appendChild(cardEl(p)));
+    const add=document.createElement("button");
+    add.className="add-card"; add.textContent="＋ Add project";
+    add.onclick=()=>openModal(newProject(col));
+    body.appendChild(add);
+    board.appendChild(colEl);
+    wireColumn(colEl,body);
+  });
+  // add-column button
+  const addCol=document.createElement("button");
+  addCol.className="add-col"; addCol.textContent="＋"; addCol.title="Add stage";
+  addCol.onclick=()=>{
+    let name="New stage", i=2; while(state.columns.includes(name)){name="New stage "+i++;}
+    state.columns.push(name); save(); renderBoard();
+  };
+  board.appendChild(addCol);
+  // rename + delete column handlers
+  board.querySelectorAll(".cname").forEach(inp=>{
+    inp.addEventListener("change",()=>{
+      const ci=+inp.dataset.ci, old=state.columns[ci], val=inp.value.trim()||old;
+      if(val!==old){
+        state.projects.forEach(p=>{if(p.stage===old)p.stage=val;});
+        state.columns[ci]=val; save(); renderBoard();
+      }
+    });
+    inp.addEventListener("keydown",e=>{if(e.key==="Enter")inp.blur();});
+  });
+  board.querySelectorAll("[data-delcol]").forEach(b=>{
+    b.onclick=()=>{
+      const ci=+b.dataset.delcol, col=state.columns[ci];
+      const n=state.projects.filter(p=>p.stage===col).length;
+      if(n>0 && !confirm(`"${col}" has ${n} project(s). Delete the stage? Projects move to "No status".`))return;
+      state.projects.forEach(p=>{if(p.stage===col)p.stage=(state.columns.find(c=>c==="No status")||state.columns[0]||"");});
+      state.columns.splice(ci,1); save(); renderBoard();
+    };
+  });
+}
+
+function cardEl(p){
+  const el=document.createElement("div");
+  el.className="card"; el.draggable=true; el.dataset.id=p.id;
+  const du=daysUntil(p.deadline);
+  let dueCls="", dueTxt="";
+  if(p.deadline){
+    dueCls = du<0?"over":(du<=3?"soon":"");
+    dueTxt = `📅 ${fmtDate(p.deadline)}`;
+  }
+  const cos=(p.companies||[]).slice(0,2).map(c=>`<span class="tag co">${esc(c)}</span>`).join("");
+  const more=(p.companies||[]).length>2?`<span class="tag co">+${p.companies.length-2}</span>`:"";
+  el.innerHTML=`
+    <div class="ttl">${esc(p.title)}</div>
+    <div class="meta">
+      ${cos}${more}
+    </div>
+    ${dueTxt?`<div class="due ${dueCls}">${dueTxt}</div>`:""}`;
+  el.addEventListener("click",e=>{ if(!el.classList.contains("just-dragged")) openModal(p,false); });
+  el.addEventListener("dragstart",e=>{ el.classList.add("dragging"); e.dataTransfer.setData("text/plain",p.id); });
+  el.addEventListener("dragend",()=>{ el.classList.remove("dragging");
+    el.classList.add("just-dragged"); setTimeout(()=>el.classList.remove("just-dragged"),120); });
+  return el;
+}
+
+function wireColumn(colEl,body){
+  colEl.addEventListener("dragover",e=>{e.preventDefault(); colEl.classList.add("drag-over");});
+  colEl.addEventListener("dragleave",e=>{ if(!colEl.contains(e.relatedTarget)) colEl.classList.remove("drag-over"); });
+  colEl.addEventListener("drop",e=>{
+    e.preventDefault(); colEl.classList.remove("drag-over");
+    const id=e.dataTransfer.getData("text/plain");
+    const p=state.projects.find(x=>x.id===id);
+    if(p){ p.stage=colEl.dataset.col; save(); renderBoard(); renderDue(); }
+  });
+}
+
+/* ---------- Modal ---------- */
+let editing=null, isNew=false;
+function newProject(stage){
+  return { id:"p"+Date.now(), title:"", stage:stage||state.columns[0],
+           companies:[], deadline:"", desc:"", objective:"", todos:[] };
+}
+function openModal(p,brandNew){
+  editing=p; isNew=!!brandNew;
+  $("#m-title").value=p.title;
+  $("#m-deadline").value=p.deadline||"";
+  $("#m-desc").value=p.desc||"";
+  $("#m-obj").value=p.objective||"";
+  $("#m-status").textContent=p.stage||"—";
+  $("#m-sdot").style.background=stageColor(p.stage);
+  renderCompanies(); renderTodos();
+  $("#overlay").classList.add("open");
+  if(brandNew) setTimeout(()=>$("#m-title").focus(),50);
+}
+function closeModal(){
+  // commit text fields
+  if(editing){
+    editing.title=$("#m-title").value.trim()||editing.title||"Untitled project";
+    editing.deadline=$("#m-deadline").value;
+    editing.desc=$("#m-desc").value;
+    editing.objective=$("#m-obj").value;
+    if(isNew && !state.projects.includes(editing)) state.projects.push(editing);
+    save();
+  }
+  $("#overlay").classList.remove("open");
+  editing=null; isNew=false;
+  renderBoard(); renderDue(); renderCompanyFilter();
+}
+
+/* companies multi-select with editable dropdown */
+function renderCompanies(){
+  const box=$("#m-companies");
+  box.querySelectorAll(".co-tag").forEach(n=>n.remove());
+  const addWrap=$(".co-add");
+  (editing.companies||[]).forEach(c=>{
+    const t=document.createElement("span"); t.className="co-tag";
+    t.innerHTML=`${esc(c)} <button title="remove">✕</button>`;
+    t.querySelector("button").onclick=()=>{
+      editing.companies=editing.companies.filter(x=>x!==c); save(); renderCompanies();
+    };
+    box.insertBefore(t,addWrap);
+  });
+}
+function addCompany(name){
+  name=name.trim(); if(!name)return;
+  if(!state.companies.includes(name)) state.companies.push(name);
+  editing.companies=editing.companies||[];
+  if(!editing.companies.includes(name)) editing.companies.push(name);
+  $("#co-input").value=""; $("#co-suggest").classList.remove("show");
+  save(); renderCompanies(); renderCompanyFilter();
+}
+function wireCompanyInput(){
+  const input=$("#co-input"), sug=$("#co-suggest");
+  const refresh=()=>{
+    const q=input.value.trim().toLowerCase();
+    const matches=state.companies.filter(c=>c.toLowerCase().includes(q)&&!(editing.companies||[]).includes(c));
+    let html=matches.map(c=>`<div data-c="${esc(c)}">${esc(c)}</div>`).join("");
+    if(q && !state.companies.some(c=>c.toLowerCase()===q)) html+=`<div class="new-opt" data-new="1">＋ Create "${esc(input.value.trim())}"</div>`;
+    if(!html){ sug.classList.remove("show"); return; }
+    sug.innerHTML=html; sug.classList.add("show");
+    sug.querySelectorAll("[data-c]").forEach(d=>d.onclick=()=>addCompany(d.dataset.c));
+    const no=sug.querySelector("[data-new]"); if(no) no.onclick=()=>addCompany(input.value);
+  };
+  input.addEventListener("focus",refresh);
+  input.addEventListener("input",refresh);
+  input.addEventListener("keydown",e=>{
+    if(e.key==="Enter"){e.preventDefault(); if(input.value.trim()) addCompany(input.value);}
+    if(e.key==="Escape") sug.classList.remove("show");
+  });
+  document.addEventListener("click",e=>{ if(!$(".co-add").contains(e.target)) sug.classList.remove("show"); });
+}
+
+/* to-do list */
+function renderTodos(){
+  const box=$("#m-todos"); box.innerHTML="";
+  (editing.todos||[]).forEach((td,i)=>{
+    const row=document.createElement("div"); row.className="todo"+(td.d?" done":"");
+    row.innerHTML=`<input type="checkbox" ${td.d?"checked":""}>
+      <input class="tx" value="${esc(td.t)}" placeholder="step…">
+      <button class="rm" title="remove">✕</button>`;
+    row.querySelector("input[type=checkbox]").onchange=e=>{td.d=e.target.checked; row.classList.toggle("done",td.d); save();};
+    row.querySelector(".tx").addEventListener("input",e=>{td.t=e.target.value; save();});
+    row.querySelector(".rm").onclick=()=>{editing.todos.splice(i,1); save(); renderTodos();};
+    box.appendChild(row);
+  });
+}
+$("#addTodo").onclick=()=>{ editing.todos=editing.todos||[]; editing.todos.push({t:"",d:false}); renderTodos();
+  const last=$("#m-todos").lastChild; if(last) last.querySelector(".tx").focus(); };
+
+/* deadline / desc / obj live-save */
+["m-deadline","m-desc","m-obj","m-title"].forEach(id=>{
+  $("#"+id).addEventListener("input",()=>{
+    if(!editing)return;
+    if(id==="m-deadline")editing.deadline=$("#m-deadline").value;
+    if(id==="m-desc")editing.desc=$("#m-desc").value;
+    if(id==="m-obj")editing.objective=$("#m-obj").value;
+    if(id==="m-title")editing.title=$("#m-title").value;
+    if(isNew && !state.projects.includes(editing)) state.projects.push(editing);
+    isNew=false; save();
+    if(id==="m-deadline")renderDue();
+  });
+});
+
+$("#delProj").onclick=()=>{
+  if(!editing)return;
+  if(confirm("Delete this project permanently?")){
+    state.projects=state.projects.filter(p=>p!==editing && p.id!==editing.id);
+    save(); $("#overlay").classList.remove("open"); editing=null;
+    renderBoard(); renderDue();
+  }
+};
+$("#closeModal").onclick=closeModal;
+$("#overlay").addEventListener("mousedown",e=>{ if(e.target.id==="overlay") closeModal(); });
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){
+    if($("#overlay").classList.contains("open")) closeModal();
+    if($("#coOverlay").classList.contains("open")) $("#coOverlay").classList.remove("open");
+  }
+});
+
+/* ---------- Filter UI ---------- */
+function renderCompanyFilter(){
+  const sel=$("#companyFilter"); const cur=filters.company;
+  sel.innerHTML=`<option value="">All companies</option>`+state.companies.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
+  sel.value=cur;
+}
+$("#companyFilter").onchange=e=>{filters.company=e.target.value; renderBoard();};
+$("#search").addEventListener("input",e=>{filters.search=e.target.value; renderBoard();});
+$("#clearFilters").onclick=()=>{
+  filters={search:"",company:""};
+  $("#search").value=""; $("#companyFilter").value="";
+  renderBoard();
+};
+
+/* ---------- Top buttons ---------- */
+$("#newProjBtn").onclick=()=>openModal(newProject(state.columns[0]||"No status"),true);
+$("#resetBtn").onclick=()=>{
+  if(confirm("Reset the board to the original Notion snapshot? Your local changes will be lost.")){
+    state=structuredClone(SEED); save(); boot();
+  }
+};
+
+/* ---------- Company manager ---------- */
+function renderCoManager(){
+  const box=$("#coList"); box.innerHTML="";
+  if(state.companies.length===0){ box.innerHTML=`<div class="empty-hint">No companies yet — add one below.</div>`; }
+  state.companies.forEach((c,i)=>{
+    const row=document.createElement("div"); row.className="todo";
+    row.innerHTML=`<input class="tx" value="${esc(c)}" data-i="${i}">
+      <button class="rm" title="delete option">✕</button>`;
+    const inp=row.querySelector(".tx");
+    inp.addEventListener("change",()=>{
+      const old=state.companies[i], val=inp.value.trim();
+      if(!val){ inp.value=old; return; }
+      if(val!==old && state.companies.includes(val)){ alert(`"${val}" already exists.`); inp.value=old; return; }
+      state.companies[i]=val;
+      state.projects.forEach(p=>{ if(p.companies) p.companies=p.companies.map(x=>x===old?val:x); });
+      save(); renderBoard(); renderCompanyFilter();
+    });
+    inp.addEventListener("keydown",e=>{if(e.key==="Enter")inp.blur();});
+    row.querySelector(".rm").onclick=()=>{
+      const name=state.companies[i];
+      const used=state.projects.filter(p=>(p.companies||[]).includes(name)).length;
+      if(used>0 && !confirm(`"${name}" is used by ${used} project(s). Delete it from the list and remove it from those projects?`)) return;
+      state.companies.splice(i,1);
+      state.projects.forEach(p=>{ if(p.companies) p.companies=p.companies.filter(x=>x!==name); });
+      if(filters.company===name) filters.company="";
+      save(); renderCoManager(); renderBoard(); renderCompanyFilter();
+    };
+    box.appendChild(row);
+  });
+}
+function addCoOption(){
+  const inp=$("#coNew"), val=inp.value.trim();
+  if(!val) return;
+  if(state.companies.includes(val)){ alert(`"${val}" already exists.`); return; }
+  state.companies.push(val); inp.value="";
+  save(); renderCoManager(); renderCompanyFilter();
+}
+$("#manageCo").onclick=()=>{ renderCoManager(); $("#coOverlay").classList.add("open"); setTimeout(()=>$("#coNew").focus(),50); };
+$("#closeCo").onclick=()=>$("#coOverlay").classList.remove("open");
+$("#coOverlay").addEventListener("mousedown",e=>{ if(e.target.id==="coOverlay") $("#coOverlay").classList.remove("open"); });
+$("#coNewBtn").onclick=addCoOption;
+$("#coNew").addEventListener("keydown",e=>{ if(e.key==="Enter") addCoOption(); });
+
+/* ---------- Boot ---------- */
+function boot(){ renderDue(); renderCompanyFilter(); renderBoard(); }
+wireCompanyInput();
+boot();
+</script>
+</body>
+</html>
