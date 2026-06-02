@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -43,14 +44,14 @@ body{
 ::-webkit-scrollbar-thumb{background:var(--line);border-radius:20px}
 ::-webkit-scrollbar-track{background:transparent}
 h1,h2,h3,.serif{font-family:'Fraunces',serif}
-
+ 
 /* ---------- Loading screen ---------- */
 #loading-screen{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .4s}
 #loading-screen.fade-out{opacity:0;pointer-events:none}
 #loading-screen .spinner{width:42px;height:42px;border:3px solid var(--line);border-top-color:var(--leaf);border-radius:50%;animation:spin .8s linear infinite}
 #loading-screen .load-txt{color:var(--muted);font-size:14px}
 @keyframes spin{to{transform:rotate(360deg)}}
-
+ 
 /* ---------- Setup screen ---------- */
 #setup-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:998;align-items:center;justify-content:center;padding:24px}
 #setup-screen.visible{display:flex}
@@ -65,7 +66,7 @@ h1,h2,h3,.serif{font-family:'Fraunces',serif}
 .setup-note{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.5}
 .setup-note a{color:var(--leaf);text-decoration:none}
 .setup-note a:hover{text-decoration:underline}
-
+ 
 /* ---------- Header ---------- */
 header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:22px}
 .brand{display:flex;align-items:center;gap:14px}
@@ -83,20 +84,20 @@ header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:2
 .brand p input.board-sub-in:hover{background:var(--panel)}
 .brand p input.board-sub-in:focus{background:var(--panel2);box-shadow:0 0 0 1px var(--leaf);color:var(--ink)}
 .head-actions{display:flex;gap:10px;align-items:center}
-
+ 
 /* ---------- Connection status ---------- */
 .conn-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none;transition:.3s}
 .conn-dot.live{background:var(--green);box-shadow:0 0 6px rgba(127,185,138,.5)}
 .conn-dot.error{background:var(--red)}
 .conn-label{font-size:11.5px;color:var(--muted)}
-
+ 
 /* ---------- Buttons ---------- */
 .btn{cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink);
   font-family:'Outfit';font-size:13px;font-weight:500;padding:9px 15px;border-radius:10px;transition:.18s;display:inline-flex;align-items:center;gap:7px}
 .btn:hover{border-color:var(--leaf);background:var(--panel2);transform:translateY(-1px)}
 .btn.primary{background:linear-gradient(150deg,var(--leaf),var(--leaf-deep));border:none;color:#0c130f;font-weight:600}
 .btn.ghost{background:transparent}
-
+ 
 /* ---------- Due-date boxes ---------- */
 .due-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-bottom:18px}
 .due-card{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:16px;padding:18px 20px;
@@ -108,7 +109,7 @@ header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:2
 .due-card.alarm{border-color:rgba(217,122,108,.5)}
 .due-card.alarm .big{color:var(--red)}
 .due-card .leaf-deco{position:absolute;right:-20px;bottom:-26px;font-size:96px;opacity:.05;transform:rotate(-12deg);pointer-events:none}
-
+ 
 /* ---------- Controls ---------- */
 .controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:22px;
   background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
@@ -125,7 +126,7 @@ header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:2
 .company-filter::after{content:"▾";position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--muted);font-size:11px}
 .clearf{font-size:12px;color:var(--muted);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 .clearf:hover{color:var(--ink)}
-
+ 
 /* ---------- Board ---------- */
 .board{display:flex;gap:16px;align-items:flex-start;overflow-x:auto;padding-bottom:18px}
 .col{flex:0 0 290px;background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);
@@ -142,7 +143,7 @@ header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:2
 .col:hover .del-col{opacity:.6}
 .col-head .del-col:hover{opacity:1;color:var(--red)}
 .col-body{padding:11px;overflow-y:auto;flex:1;min-height:60px}
-
+ 
 /* ---------- Cards ---------- */
 .card{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:10px;
   cursor:grab;transition:.16s;position:relative}
@@ -169,7 +170,7 @@ header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:2
 .add-col{flex:0 0 60px;align-self:stretch;background:transparent;border:1px dashed var(--line);border-radius:16px;
   color:var(--muted);font-size:26px;cursor:pointer;transition:.15s;min-height:120px}
 .add-col:hover{border-color:var(--leaf);color:var(--leaf);background:var(--panel)}
-
+ 
 /* ---------- Modal ---------- */
 .overlay{position:fixed;inset:0;background:rgba(5,8,7,.72);backdrop-filter:blur(4px);display:none;
   align-items:flex-start;justify-content:center;z-index:50;padding:40px 16px;overflow-y:auto}
@@ -227,7 +228,7 @@ header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:2
 .save-spinner.active{display:block}
 footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
 .empty-hint{color:var(--muted);font-size:12.5px;text-align:center;padding:18px 6px;font-style:italic}
-
+ 
 /* ---------- Toast ---------- */
 .toast{position:fixed;bottom:28px;right:28px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);
   border-radius:12px;padding:12px 18px;font-size:13.5px;z-index:200;transform:translateY(80px);
@@ -237,13 +238,13 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
 </style>
 </head>
 <body>
-
+ 
 <!-- Loading screen -->
 <div id="loading-screen">
   <div class="spinner"></div>
   <div class="load-txt" id="load-txt">Connecting to Supabase…</div>
 </div>
-
+ 
 <!-- Setup screen (shown when no credentials) -->
 <div id="setup-screen">
   <div class="setup-box">
@@ -266,10 +267,10 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
     </p>
   </div>
 </div>
-
+ 
 <!-- Main app (hidden until connected) -->
 <div id="app" style="display:none">
-
+ 
 <header class="top">
   <div class="brand">
     <div class="mark" title="Click to change emoji">
@@ -284,13 +285,13 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
   <div class="head-actions">
     <span class="conn-dot" id="conn-dot"></span>
     <span class="conn-label" id="conn-label">connecting…</span>
-
+ 
     <button class="btn primary" id="newProjBtn">＋ New project</button>
   </div>
 </header>
-
+ 
 <div class="due-row" id="dueRow"></div>
-
+ 
 <div class="controls">
   <div class="search-wrap">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
@@ -303,13 +304,13 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
   </div>
   <span class="clearf" id="clearFilters">clear</span>
 </div>
-
+ 
 <div class="board" id="board"></div>
-
+ 
 <footer>Drag cards between stages · click a card to expand · all data lives in Supabase · <span id="footer-board-name">Project Board</span></footer>
-
+ 
 </div><!-- /app -->
-
+ 
 <!-- Project Modal -->
 <div class="overlay" id="overlay">
   <div class="modal" id="modal">
@@ -366,7 +367,7 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
     </div>
   </div>
 </div>
-
+ 
 <!-- Category manager modal -->
 <div class="overlay" id="coOverlay">
   <div class="modal" style="width:min(460px,100%)">
@@ -384,10 +385,10 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
     </div>
   </div>
 </div>
-
+ 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
-
+ 
 <script>
 /* ============================================================
    SUPABASE KANBAN BOARD
@@ -396,10 +397,10 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
      - projects    (id text PK, data jsonb, stage text, updated_at timestamptz)
    Real-time enabled on both tables for live sync.
    ============================================================ */
-
+ 
 const CRED_KEY = "kanban_supabase_creds_v1";
 const $ = s => document.querySelector(s);
-
+ 
 /* ---------- Credentials ---------- */
 function getCreds(){
   try{ return JSON.parse(localStorage.getItem(CRED_KEY)||"null"); }catch(e){ return null; }
@@ -410,7 +411,7 @@ function saveCreds(url,key){
 function clearCreds(){
   localStorage.removeItem(CRED_KEY);
 }
-
+ 
 /* ---------- Toast ---------- */
 let toastTimer;
 function toast(msg, isErr=false){
@@ -421,7 +422,7 @@ function toast(msg, isErr=false){
   clearTimeout(toastTimer);
   toastTimer=setTimeout(()=>t.classList.remove("show"),3000);
 }
-
+ 
 /* ---------- Helpers ---------- */
 const esc = s=>(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fmtDate = iso=>{
@@ -438,9 +439,9 @@ const stageColor = stage=>{
   const map={"In Progress":"var(--yellow)","Completed":"var(--green)","Paused":"var(--muted)","Blocked":"var(--red)","Long-term":"var(--leaf)"};
   return map[stage]||"var(--leaf)";
 };
-
+ 
 /* ---------- State ---------- */
-let supabase, realtimeSub;
+let sbClient, realtimeSub;
 let state = {
   columns: ["To Do","In Progress","Done"],
   companies: [],
@@ -450,76 +451,76 @@ let state = {
 let filters = { search:"", company:"" };
 let editing=null, isNew=false;
 let saveDebounce=null;
-
+ 
 /* ---------- Supabase init ---------- */
 async function initSupabase(url, key){
-  supabase = window.supabase.createClient(url, key);
+  sbClient = window.supabase.createClient(url, key);
   // Test connection
-  const { error } = await supabase.from("board_meta").select("id").limit(1);
+  const { error } = await sbClient.from("board_meta").select("id").limit(1);
   if(error) throw error;
 }
-
+ 
 /* ---------- Load all state from Supabase ---------- */
 async function loadFromDB(){
   // Load meta (columns, companies, board title/emoji)
-  const { data: metaRows, error: me } = await supabase
+  const { data: metaRows, error: me } = await sbClient
     .from("board_meta")
     .select("id, value");
   if(me) throw me;
-
+ 
   metaRows.forEach(row=>{
     if(row.id==="columns") state.columns = row.value;
     if(row.id==="companies") state.companies = row.value;
     if(row.id==="meta") state.meta = { ...state.meta, ...row.value };
   });
-
+ 
   // Load projects
-  const { data: projRows, error: pe } = await supabase
+  const { data: projRows, error: pe } = await sbClient
     .from("projects")
     .select("id, data, stage");
   if(pe) throw pe;
-
+ 
   state.projects = (projRows||[]).map(r=>({ ...r.data, id:r.id, stage:r.stage }));
 }
-
+ 
 /* ---------- Save helpers ---------- */
 async function saveMeta(key, value){
-  const { error } = await supabase
+  const { error } = await sbClient
     .from("board_meta")
     .upsert({ id:key, value:value }, { onConflict:"id" });
   if(error) console.error("saveMeta error", error);
 }
-
+ 
 async function saveProject(p){
   setSaving(true);
   const { stage, id, ...data } = p;
-  const { error } = await supabase
+  const { error } = await sbClient
     .from("projects")
     .upsert({ id, stage, data, updated_at: new Date().toISOString() }, { onConflict:"id" });
   setSaving(false);
   if(error){ toast("Error saving: "+error.message, true); console.error(error); }
 }
-
+ 
 async function deleteProject(id){
-  const { error } = await supabase.from("projects").delete().eq("id", id);
+  const { error } = await sbClient.from("projects").delete().eq("id", id);
   if(error){ toast("Error deleting: "+error.message, true); console.error(error); }
 }
-
+ 
 function setSaving(on){
   const sp=$("#save-spinner"), txt=$("#save-txt");
   if(sp){ sp.classList.toggle("active",on); }
   if(txt){ txt.textContent = on ? "Saving…" : "Saved to Supabase"; }
 }
-
+ 
 function scheduleSave(p){
   clearTimeout(saveDebounce);
   saveDebounce = setTimeout(()=>saveProject(p), 600);
 }
-
+ 
 /* ---------- Real-time ---------- */
 function setupRealtime(){
-  if(realtimeSub) supabase.removeChannel(realtimeSub);
-  realtimeSub = supabase
+  if(realtimeSub) sbClient.removeChannel(realtimeSub);
+  realtimeSub = sbClient
     .channel("board-changes")
     .on("postgres_changes",{ event:"*", schema:"public", table:"board_meta" }, payload=>{
       const { id, value } = payload.new||{};
@@ -559,7 +560,7 @@ function setupRealtime(){
       }
     });
 }
-
+ 
 /* ---------- Apply board meta to UI ---------- */
 function applyMeta(){
   const m=state.meta||{};
@@ -572,23 +573,23 @@ function applyMeta(){
   const fb=$("#footer-board-name"); if(fb) fb.textContent=title;
   document.title=title;
 }
-
+ 
 /* ---------- Editable header fields ---------- */
 function wireHeaderEdits(){
   const titleIn=$("#board-title"), subIn=$("#board-sub"), emojiIn=$("#emoji-in");
-
+ 
   function saveMetaField(key,val){
     state.meta[key]=val;
     saveMeta("meta", state.meta);
   }
-
+ 
   titleIn.addEventListener("input",()=>{
     saveMetaField("title", titleIn.value||"Project Board");
     document.title=titleIn.value||"Project Board";
     const fb=$("#footer-board-name"); if(fb)fb.textContent=titleIn.value||"Project Board";
   });
   subIn.addEventListener("input",()=>saveMetaField("subtitle", subIn.value||"My Workspace"));
-
+ 
   // Emoji: click the mark shows a small native emoji picker via the hidden input
   const mark=$(".brand .mark");
   mark.addEventListener("click",()=>emojiIn.focus());
@@ -603,7 +604,7 @@ function wireHeaderEdits(){
     emojiIn.value="";
   });
 }
-
+ 
 /* ---------- Due-date banner ---------- */
 function renderDue(){
   const row=$("#dueRow"); if(!row)return;
@@ -636,7 +637,7 @@ function renderDue(){
   </div>`;
   row.innerHTML=html;
 }
-
+ 
 /* ---------- Board ---------- */
 function projVisible(p){
   if(filters.company&&!(p.companies||[]).includes(filters.company)) return false;
@@ -647,7 +648,7 @@ function projVisible(p){
   }
   return true;
 }
-
+ 
 function renderBoard(){
   const board=$("#board"); if(!board)return;
   board.innerHTML="";
@@ -683,7 +684,7 @@ function renderBoard(){
     renderBoard();
   };
   board.appendChild(addCol);
-
+ 
   // Rename column handlers
   board.querySelectorAll(".cname").forEach(inp=>{
     inp.addEventListener("change",async()=>{
@@ -700,7 +701,7 @@ function renderBoard(){
     });
     inp.addEventListener("keydown",e=>{if(e.key==="Enter")inp.blur();});
   });
-
+ 
   // Delete column
   board.querySelectorAll("[data-delcol]").forEach(b=>{
     b.onclick=async()=>{
@@ -717,7 +718,7 @@ function renderBoard(){
     };
   });
 }
-
+ 
 function cardEl(p){
   const el=document.createElement("div");
   el.className="card"; el.draggable=true; el.dataset.id=p.id;
@@ -740,7 +741,7 @@ function cardEl(p){
     el.classList.add("just-dragged"); setTimeout(()=>el.classList.remove("just-dragged"),120); });
   return el;
 }
-
+ 
 function wireColumn(colEl){
   colEl.addEventListener("dragover",e=>{e.preventDefault();colEl.classList.add("drag-over");});
   colEl.addEventListener("dragleave",e=>{ if(!colEl.contains(e.relatedTarget))colEl.classList.remove("drag-over"); });
@@ -755,13 +756,13 @@ function wireColumn(colEl){
     }
   });
 }
-
+ 
 /* ---------- Modal ---------- */
 function newProject(stage){
   return { id:"p"+Date.now(), title:"", stage:stage||state.columns[0]||"",
            companies:[], deadline:"", priority:"", desc:"", objective:"", todos:[] };
 }
-
+ 
 function openModal(p,brandNew){
   editing=p; isNew=!!brandNew;
   $("#m-title").value=p.title||"";
@@ -775,7 +776,7 @@ function openModal(p,brandNew){
   $("#overlay").classList.add("open");
   if(brandNew) setTimeout(()=>$("#m-title").focus(),50);
 }
-
+ 
 function closeModal(){
   if(editing){
     editing.title=$("#m-title").value.trim()||editing.title||"Untitled project";
@@ -790,7 +791,7 @@ function closeModal(){
   editing=null; isNew=false;
   renderBoard(); renderDue(); renderCompanyFilter();
 }
-
+ 
 /* ---------- Companies ---------- */
 function renderCompanies(){
   const box=$("#m-companies");
@@ -806,7 +807,7 @@ function renderCompanies(){
     box.insertBefore(t,addWrap);
   });
 }
-
+ 
 async function addCompany(name){
   name=name.trim(); if(!name)return;
   if(!state.companies.includes(name)){
@@ -819,7 +820,7 @@ async function addCompany(name){
   $("#co-input").value=""; $("#co-suggest").classList.remove("show");
   scheduleSave(editing); renderCompanies();
 }
-
+ 
 function wireCompanyInput(){
   const input=$("#co-input"), sug=$("#co-suggest");
   const refresh=()=>{
@@ -840,7 +841,7 @@ function wireCompanyInput(){
   });
   document.addEventListener("click",e=>{ if(!$(".co-add").contains(e.target))sug.classList.remove("show"); });
 }
-
+ 
 /* ---------- To-do list ---------- */
 function renderTodos(){
   const box=$("#m-todos"); box.innerHTML="";
@@ -855,12 +856,12 @@ function renderTodos(){
     box.appendChild(row);
   });
 }
-
+ 
 $("#addTodo").onclick=()=>{
   editing.todos=editing.todos||[]; editing.todos.push({t:"",d:false}); renderTodos();
   const last=$("#m-todos").lastChild; if(last)last.querySelector(".tx").focus();
 };
-
+ 
 /* ---------- Live-save modal fields ---------- */
 ["m-deadline","m-desc","m-obj","m-title","m-priority"].forEach(id=>{
   const el=$("#"+id); if(!el)return;
@@ -876,7 +877,7 @@ $("#addTodo").onclick=()=>{
     if(id==="m-deadline")renderDue();
   });
 });
-
+ 
 /* ---------- Delete project ---------- */
 $("#delProj").onclick=async()=>{
   if(!editing)return;
@@ -887,10 +888,10 @@ $("#delProj").onclick=async()=>{
     renderBoard(); renderDue();
   }
 };
-
+ 
 $("#closeModal").onclick=closeModal;
 $("#overlay").addEventListener("mousedown",e=>{if(e.target.id==="overlay")closeModal();});
-
+ 
 /* ---------- Filters ---------- */
 function renderCompanyFilter(){
   const sel=$("#companyFilter"); if(!sel)return;
@@ -898,7 +899,7 @@ function renderCompanyFilter(){
   sel.innerHTML=`<option value="">All</option>`+state.companies.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
   sel.value=cur;
 }
-
+ 
 $("#companyFilter").onchange=e=>{filters.company=e.target.value;renderBoard();};
 $("#search").addEventListener("input",e=>{filters.search=e.target.value;renderBoard();});
 $("#clearFilters").onclick=()=>{
@@ -906,10 +907,10 @@ $("#clearFilters").onclick=()=>{
   $("#search").value=""; $("#companyFilter").value="";
   renderBoard();
 };
-
+ 
 /* ---------- New project ---------- */
 $("#newProjBtn").onclick=()=>openModal(newProject(state.columns[0]||""),true);
-
+ 
 /* ---------- Category manager ---------- */
 function renderCoManager(){
   const box=$("#coList"); box.innerHTML="";
@@ -944,7 +945,7 @@ function renderCoManager(){
     box.appendChild(row);
   });
 }
-
+ 
 async function addCoOption(){
   const inp=$("#coNew"), val=inp.value.trim();
   if(!val)return;
@@ -953,15 +954,15 @@ async function addCoOption(){
   await saveMeta("companies",state.companies);
   renderCoManager(); renderCompanyFilter();
 }
-
+ 
 $("#manageCo").onclick=()=>{renderCoManager();$("#coOverlay").classList.add("open");setTimeout(()=>$("#coNew").focus(),50);};
 $("#closeCo").onclick=()=>$("#coOverlay").classList.remove("open");
 $("#coOverlay").addEventListener("mousedown",e=>{if(e.target.id==="coOverlay")$("#coOverlay").classList.remove("open");});
 $("#coNewBtn").onclick=addCoOption;
 $("#coNew").addEventListener("keydown",e=>{if(e.key==="Enter")addCoOption();});
-
-
-
+ 
+ 
+ 
 /* ---------- Keyboard ---------- */
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape"){
@@ -969,7 +970,7 @@ document.addEventListener("keydown",e=>{
     if($("#coOverlay").classList.contains("open"))$("#coOverlay").classList.remove("open");
   }
 });
-
+ 
 /* ============================================================
    SETUP SCREEN
    ============================================================ */
@@ -990,7 +991,7 @@ $("#setup-save").onclick=async()=>{
     $("#setup-save").textContent="Connect board";
   }
 };
-
+ 
 /* ============================================================
    BOOT
    ============================================================ */
@@ -998,9 +999,9 @@ async function boot(url, key){
   const ls=$("#loading-screen"), ss=$("#setup-screen"), app=$("#app");
   ls.style.display="flex"; ss.classList.remove("visible"); app.style.display="none";
   $("#load-txt").textContent="Loading board data…";
-
+ 
   try{
-    if(!supabase) await initSupabase(url, key);
+    if(!sbClient) await initSupabase(url, key);
     await loadFromDB();
     applyMeta();
     renderDue();
@@ -1021,11 +1022,11 @@ async function boot(url, key){
     ls.style.display="flex";
   }
 }
-
+ 
 /* ---------- Hardcoded credentials (embedded — no setup screen needed) ---------- */
 const SUPABASE_URL = "https://kpxjxbtoiezhxfqdvpnj.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtweGp4YnRvaWV6aHhmcWR2cG5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzNjI4ODQsImV4cCI6MjA5NTkzODg4NH0.xsc-6LNyS0nVkSaYCHw73vYJfcI0WlMQDgs8v4U95HM";
-
+ 
 /* ---------- Entry point ---------- */
 (async()=>{
   await boot(SUPABASE_URL, SUPABASE_KEY);
@@ -1033,3 +1034,4 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 </script>
 </body>
 </html>
+ 
