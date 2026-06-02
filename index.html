@@ -749,12 +749,40 @@ function emptyDueBlock(labelTxt, accentColor, deco){
 }
 function renderDue(){
   const row=$("#dueRow"); if(!row)return;
-  const active=state.projects.filter(p=>p.deadline&&p.stage!=="Concluído")
-    .sort((a,b)=>a.deadline.localeCompare(b.deadline));
-  const next=active[0];
-  let html=next
-    ?dueBlock(next,"⏱ Próximo prazo","var(--leaf)","🌿")
-    :`<div class="due-card"><div class="label">⏱ Próximo prazo</div><div class="big">Nenhum prazo definido</div><div class="sub">Adicione um prazo a um projeto</div><div class="leaf-deco">🌿</div></div>`;
+
+  // Bloco 1 — Contador de tarefas restantes até o lançamento
+  const prePhases=state.roadmapPhases.slice(0,5);
+  const preCards=state.projects.filter(p=>prePhases.includes(p.categoria));
+  const totalPre=preCards.length;
+  const donePre=preCards.filter(p=>p.stage==="Concluído").length;
+  const remaining=totalPre-donePre;
+  let launchHtml;
+  if(totalPre===0){
+    launchHtml=`<div class="due-card">
+      <div class="label">🚀 Faltam para o lançamento</div>
+      <div class="big" style="font-size:20px">Sem tarefas</div>
+      <div class="sub">Adicione tarefas ao roadmap</div>
+      <div class="leaf-deco">🚀</div>
+    </div>`;
+  } else if(remaining===0){
+    launchHtml=`<div class="due-card" style="border-color:rgba(127,185,138,.5)">
+      <div class="label" style="color:var(--green)">🚀 Faltam para o lançamento</div>
+      <div class="big" style="color:var(--green);font-size:22px">🚀 Pronto para lançar!</div>
+      <div class="sub" style="color:var(--green)">Todas as ${totalPre} tarefas concluídas</div>
+      <div class="leaf-deco">🎉</div>
+    </div>`;
+  } else {
+    const alertColor=remaining>10?"var(--red)":remaining>=5?"var(--yellow)":"var(--green)";
+    const alarmCls=remaining>10?"alarm":"";
+    launchHtml=`<div class="due-card ${alarmCls}">
+      <div class="label">🚀 Faltam para o lançamento</div>
+      <div class="big" style="color:${alertColor}">${remaining}</div>
+      <div class="sub">de ${totalPre} tarefa${totalPre===1?"":"s"} no total</div>
+      <div class="leaf-deco">🚀</div>
+    </div>`;
+  }
+
+  let html=launchHtml;
 
   const pedroNext=state.projects.filter(p=>p.responsible==="Pedro"&&p.deadline&&p.stage!=="Concluído")
     .sort((a,b)=>a.deadline.localeCompare(b.deadline))[0];
@@ -1128,15 +1156,16 @@ document.addEventListener("keydown",e=>{
 function renderLaunchBar(){
   const bar=document.getElementById("launch-bar"); if(!bar)return;
   const title=state.meta.launchBarTitle||"Progresso até o lançamento";
-  const launchName=state.roadmapPhases[4]||"Lançamento";
-  const lCards=state.projects.filter(p=>p.categoria===launchName);
-  const done=lCards.filter(p=>p.stage==="Concluído").length;
-  const total=lCards.length;
+  const prePhases=state.roadmapPhases.slice(0,5);
+  const preCards=state.projects.filter(p=>prePhases.includes(p.categoria));
+  const done=preCards.filter(p=>p.stage==="Concluído").length;
+  const total=preCards.length;
+  const remaining=total-done;
   const pct=total>0?Math.round(done/total*100):0;
   const countTxt=total===0
-    ?`<span class="lb-count" style="font-style:italic">Nenhuma tarefa de lançamento definida</span>`
+    ?`<span class="lb-count" style="font-style:italic">Nenhuma tarefa de pré-lançamento definida</span>`
     :`<div class="lb-bar-wrap"><div class="lb-bar-fill" style="width:${pct}%"></div></div>
-      <span class="lb-count">${done} de ${total} tarefa${total===1?"":"s"} concluída${done===1?"":"s"}</span>
+      <span class="lb-count">${done} de ${total} tarefa${total===1?"":"s"} concluída${done===1?"":"s"} — faltam ${remaining} para o lançamento</span>
       <span class="lb-pct" style="color:${pct===100?"var(--green)":"var(--leaf)"}">${pct}%</span>`;
   bar.innerHTML=`<input class="lb-title" id="lb-title-in" value="${esc(title)}" placeholder="Título…">${countTxt}`;
   const inp=document.getElementById("lb-title-in");
