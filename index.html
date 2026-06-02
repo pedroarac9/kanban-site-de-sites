@@ -164,6 +164,9 @@ header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:2
 .card .due{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);margin-top:9px}
 .card .due.soon{color:var(--gold)}
 .card .due.over{color:var(--red)}
+.card .resp{display:flex;align-items:center;gap:5px;margin-top:7px}
+.resp-dot{width:8px;height:8px;border-radius:50%;flex:none;display:inline-block}
+.resp-name{font-size:11.5px;color:var(--ink-soft)}
 .add-card{width:100%;text-align:left;background:transparent;border:1px dashed var(--line);color:var(--muted);
   border-radius:10px;padding:9px 12px;font-family:'Outfit';font-size:13px;cursor:pointer;transition:.15s}
 .add-card:hover{border-color:var(--leaf);color:var(--leaf)}
@@ -344,6 +347,14 @@ footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
         </div>
       </div>
       <div class="field">
+        <label>Responsável</label>
+        <select id="m-responsible">
+          <option value="">— nenhum —</option>
+          <option value="Pedro">Pedro</option>
+          <option value="Gabriela">Gabriela</option>
+        </select>
+      </div>
+      <div class="field">
         <label>Status (espelha a etapa)</label>
         <div class="status-line"><span class="sdot" id="m-sdot"></span><span id="m-status">—</span><span class="hint">arraste o card para alterar</span></div>
       </div>
@@ -436,14 +447,14 @@ const daysUntil = iso=>{
   return Math.round((t-n)/86400000);
 };
 const stageColor = stage=>{
-  const map={"Em Andamento":"var(--yellow)","Concluído":"var(--green)","Pausado":"var(--muted)","Bloqueado":"var(--red)","Longo prazo":"var(--leaf)"};
+  const map={"Em Definição":"var(--muted)","Pendente":"var(--gold)","Em Execução":"var(--yellow)","Aguardando":"var(--ink-soft)","Concluído":"var(--green)","Em Andamento":"var(--yellow)","Pausado":"var(--muted)","Bloqueado":"var(--red)","Longo prazo":"var(--leaf)"};
   return map[stage]||"var(--leaf)";
 };
 
 /* ---------- State ---------- */
 let sbClient, realtimeSub;
 let state = {
-  columns: ["A Fazer","Em Andamento","Concluído"],
+  columns: ["Em Definição","Pendente","Em Execução","Aguardando","Concluído"],
   companies: [],
   projects: [],
   meta: { emoji:"🌿", title:"Quadro de Projetos", subtitle:"Meu Espaço de Trabalho" }
@@ -731,10 +742,13 @@ function cardEl(p){
   const cos=(p.companies||[]).slice(0,2).map(c=>`<span class="tag co">${esc(c)}</span>`).join("");
   const more=(p.companies||[]).length>2?`<span class="tag co">+${p.companies.length-2}</span>`:"";
   const prioHtml=p.priority?`<span class="tag prio ${esc(p.priority)}">${esc(p.priority)}</span>`:"";
+  const respColor=p.responsible==="Pedro"?"#8b5cf6":p.responsible==="Gabriela"?"#ec4899":"";
+  const respHtml=p.responsible?`<div class="resp"><span class="resp-dot" style="background:${respColor}"></span><span class="resp-name">${esc(p.responsible)}</span></div>`:"";
   el.innerHTML=`
     <div class="ttl">${esc(p.title)}</div>
     <div class="meta">${cos}${more}${prioHtml}</div>
-    ${dueTxt?`<div class="due ${dueCls}">${dueTxt}</div>`:""}`;
+    ${dueTxt?`<div class="due ${dueCls}">${dueTxt}</div>`:""}
+    ${respHtml}`;
   el.addEventListener("click",e=>{ if(!el.classList.contains("just-dragged")) openModal(p,false); });
   el.addEventListener("dragstart",e=>{ el.classList.add("dragging"); e.dataTransfer.setData("text/plain",p.id); });
   el.addEventListener("dragend",()=>{ el.classList.remove("dragging");
@@ -760,7 +774,7 @@ function wireColumn(colEl){
 /* ---------- Modal ---------- */
 function newProject(stage){
   return { id:"p"+Date.now(), title:"", stage:stage||state.columns[0]||"",
-           companies:[], deadline:"", priority:"", desc:"", objective:"", todos:[] };
+           companies:[], deadline:"", priority:"", responsible:"", desc:"", objective:"", todos:[] };
 }
 
 function openModal(p,brandNew){
@@ -770,6 +784,7 @@ function openModal(p,brandNew){
   $("#m-desc").value=p.desc||"";
   $("#m-obj").value=p.objective||"";
   $("#m-priority").value=p.priority||"";
+  $("#m-responsible").value=p.responsible||"";
   $("#m-status").textContent=p.stage||"—";
   $("#m-sdot").style.background=stageColor(p.stage);
   renderCompanies(); renderTodos();
@@ -784,6 +799,7 @@ function closeModal(){
     editing.desc=$("#m-desc").value;
     editing.objective=$("#m-obj").value;
     editing.priority=$("#m-priority").value;
+    editing.responsible=$("#m-responsible").value;
     if(isNew&&!state.projects.includes(editing)) state.projects.push(editing);
     saveProject(editing);
   }
@@ -863,7 +879,7 @@ $("#addTodo").onclick=()=>{
 };
 
 /* ---------- Live-save modal fields ---------- */
-["m-deadline","m-desc","m-obj","m-title","m-priority"].forEach(id=>{
+["m-deadline","m-desc","m-obj","m-title","m-priority","m-responsible"].forEach(id=>{
   const el=$("#"+id); if(!el)return;
   el.addEventListener("input",()=>{
     if(!editing)return;
@@ -872,6 +888,7 @@ $("#addTodo").onclick=()=>{
     if(id==="m-obj")editing.objective=$("#m-obj").value;
     if(id==="m-title")editing.title=$("#m-title").value;
     if(id==="m-priority")editing.priority=$("#m-priority").value;
+    if(id==="m-responsible")editing.responsible=$("#m-responsible").value;
     if(isNew&&!state.projects.includes(editing)){state.projects.push(editing);isNew=false;}
     scheduleSave(editing);
     if(id==="m-deadline")renderDue();
@@ -971,6 +988,47 @@ document.addEventListener("keydown",e=>{
   }
 });
 
+/* ---------- Seed default data (runs once on empty board) ---------- */
+async function seedDefaultData(){
+  state.columns = ["Em Definição","Pendente","Em Execução","Aguardando","Concluído"];
+  await saveMeta("columns", state.columns);
+
+  const seed = [
+    { title:"Definir nome comercial",                                        stage:"Em Definição", responsible:"" },
+    { title:"Definir título, subtítulo e sub-subtítulo do Hero",             stage:"Em Definição", responsible:"" },
+    { title:"Adquirir imagem de fundo do Hero em HD",                        stage:"Pendente",     responsible:"" },
+    { title:"Reescrever diferenciais (foco no o quê, não no como)",          stage:"Pendente",     responsible:"" },
+    { title:"Produzir conteúdo da linha do tempo pós-contratação",           stage:"Pendente",     responsible:"" },
+    { title:"Avaliar incluir fotos na seção Quem Somos",                     stage:"Pendente",     responsible:"" },
+    { title:"Corrigir Portfólio para âncora na mesma página",                stage:"Pendente",     responsible:"Pedro" },
+    { title:"Validar transferência do site para o cliente no Lovable",       stage:"Em Definição", responsible:"" },
+    { title:"Definir domínio e hospedagem e atualizar FAQ",                  stage:"Em Definição", responsible:"" },
+    { title:"Criar perfil no Google Meu Negócio",                            stage:"Pendente",     responsible:"" },
+    { title:"Definir número de pacotes (2 ou 3)",                            stage:"Em Definição", responsible:"" },
+    { title:"Definir preços de cada pacote",                                 stage:"Em Definição", responsible:"" },
+    { title:"Definir prazos de entrega por pacote (em dias)",                stage:"Em Definição", responsible:"" },
+    { title:"Definir política de refações por pacote",                       stage:"Em Definição", responsible:"" },
+    { title:"Definir política de suporte pós-entrega",                       stage:"Em Definição", responsible:"" },
+    { title:"Definir estrutura de pagamento (Pix, cartão, entrada)",         stage:"Em Definição", responsible:"" },
+    { title:"Produzir sites para portfólio (mínimo 4)",                      stage:"Pendente",     responsible:"" },
+    { title:"Testar variante com fundo escuro nos diferenciais",             stage:"Pendente",     responsible:"Pedro" },
+    { title:"Avaliar link de pagamento direto vs WhatsApp",                  stage:"Em Definição", responsible:"" },
+  ];
+
+  for(const s of seed){
+    const p = {
+      id: "seed_" + Date.now() + "_" + Math.random().toString(36).slice(2,7),
+      title: s.title, stage: s.stage, responsible: s.responsible,
+      companies:[], deadline:"", priority:"", desc:"", objective:"", todos:[]
+    };
+    state.projects.push(p);
+    await saveProject(p);
+  }
+
+  state.meta.seeded = true;
+  await saveMeta("meta", state.meta);
+}
+
 /* ============================================================
    SETUP SCREEN
    ============================================================ */
@@ -1003,6 +1061,7 @@ async function boot(url, key){
   try{
     if(!sbClient) await initSupabase(url, key);
     await loadFromDB();
+    if(!state.meta.seeded && state.projects.length === 0) await seedDefaultData();
     applyMeta();
     renderDue();
     renderCompanyFilter();
